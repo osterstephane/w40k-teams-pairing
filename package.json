@@ -1,0 +1,13 @@
+{
+  "name": "w40k-teams-pairing",
+  "version": "0.1.0",
+  "description": "Aide à la décision pour le pairing Warhammer 40,000 par équipes (3 à 8 joueurs)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "build": "node tools/build.js",
+    "bench": "node tools/bench.js"
+  },
+  "license": "MIT"
+}

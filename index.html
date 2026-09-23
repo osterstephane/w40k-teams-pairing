@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Table de pairing 40K</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #f5f7fa;
+  --ink: #18202b;
+  --muted: #5b6676;
+  --line: #d5dbe3;
+  --accent: #946510;
+  --accent-ink: #ffffff;
+  --accent-soft: #f4e8cc;
+  --good: #1f7a4d;
+  --bad: #b3362b;
+  --draw: #7c8797;
+  --focus: #2f64d6;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #11151b; --surface: #181e26; --surface-2: #1f2630; --ink: #e4e8ee; --muted: #9aa4b2;
+    --line: #2c3541; --accent: #d8a546; --accent-ink: #1a1305; --accent-soft: #3a2f18;
+    --good: #4cc38a; --bad: #f0786a; --draw: #8c96a5; --focus: #7aa2ff;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #11151b; --surface: #181e26; --surface-2: #1f2630; --ink: #e4e8ee; --muted: #9aa4b2;
+  --line: #2c3541; --accent: #d8a546; --accent-ink: #1a1305; --accent-soft: #3a2f18;
+  --good: #4cc38a; --bad: #f0786a; --draw: #8c96a5; --focus: #7aa2ff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 48px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: 30px; }
+h2 { font-size: 22px; }
+h3 { font-size: 17px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+p { margin: 0; }
+.num, td.num, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+button, select, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; padding-block: 8px 16px; border-bottom: 2px solid var(--ink); }
+.brand { display: grid; gap: 2px; }
+.brand small { color: var(--muted); font-size: 13px; }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+nav.tabs button { border: 1px solid var(--line); background: var(--surface); padding: 6px 14px; border-radius: 4px; cursor: pointer; font-family: var(--display); font-size: 17px; font-weight: 600; letter-spacing: .03em; }
+nav.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.small { padding: 2px 8px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+section.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 12px; align-content: start; }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; margin-top: 16px; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
+.stack { display: grid; gap: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.field { display: grid; gap: 4px; }
+.field > span { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.field input, .field select, .field textarea, select.inp, input.inp { background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; }
+.field input[type="range"] { padding: 0; accent-color: var(--accent); }
+.muted { color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); max-width: 70ch; }
+.warn { color: var(--bad); font-size: 13px; }
+
+/* Projection */
+.proj { display: grid; gap: 10px; }
+.vdl { display: flex; height: 26px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.vdl > div { display: grid; place-items: center; font: 500 12px var(--mono); color: #fff; min-width: 0; overflow: hidden; white-space: nowrap; }
+.vdl .w { background: var(--good); }
+.vdl .d { background: var(--draw); }
+.vdl .l { background: var(--bad); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; text-align: right; white-space: nowrap; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.bigline { display: flex; gap: 16px; flex-wrap: wrap; align-items: baseline; }
+.big { font: 700 34px var(--display); }
+
+/* Timeline */
+ol.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+ol.timeline li { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+ol.timeline li.now { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+ol.timeline li.past { color: var(--ink); text-decoration: line-through; text-decoration-color: var(--muted); }
+
+/* Recommendation */
+.reco { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 4px 4px 0; display: grid; gap: 6px; }
+.reco strong { font-weight: 600; }
+.chip { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; text-transform: uppercase; letter-spacing: .04em; }
+.chip.best { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.chip.eq { border-color: var(--accent); color: var(--ink); }
+.chip.bad { border-color: var(--bad); color: var(--bad); }
+
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+th { font-weight: 600; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+td.num, th.num { text-align: right; }
+tr.picked td { background: var(--accent-soft); }
+.minibar { display: flex; width: 90px; height: 10px; border-radius: 2px; overflow: hidden; background: var(--surface-2); }
+.minibar i { display: block; height: 100%; }
+.minibar .w { background: var(--good); } .minibar .d { background: var(--draw); } .minibar .l { background: var(--bad); }
+
+table.heat { width: auto; }
+table.heat td { text-align: center; font-family: var(--mono); font-size: 12px; padding: 4px 6px; border: 1px solid var(--line); min-width: 44px; }
+table.heat th { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--ink); font-weight: 500; }
+table.heat th.col { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; padding: 6px 2px; }
+
+/* Matrix editor */
+table.editor td { padding: 2px; border: 1px solid var(--line); }
+table.editor input { width: 64px; border: 0; background: transparent; padding: 5px 4px; text-align: center; font-family: var(--mono); font-size: 13px; }
+table.editor input.name { width: 130px; text-align: left; font-family: var(--body); font-weight: 500; }
+table.editor th { padding: 2px; }
+table.editor th input.name { width: 92px; text-align: center; }
+.layout-tabs { display: flex; gap: 4px; }
+.layout-tabs button { border: 1px solid var(--line); background: var(--surface-2); padding: 3px 12px; border-radius: 4px; cursor: pointer; font-family: var(--mono); }
+.layout-tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+ul.games { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+ul.games li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 6px 8px; background: var(--surface-2); border-radius: 4px; font-size: 13px; }
+ul.games .role { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+.progress { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+@media (prefers-reduced-motion: reduce) { .progress i { transition: none; } }
+.choose { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; align-items: end; padding: 12px; border: 1px dashed var(--line); border-radius: 4px; }
+details > summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.method { max-width: 75ch; display: grid; gap: 12px; }
+.method h2 { margin-top: 8px; }
+.method ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+textarea { width: 100%; min-height: 110px; font-family: var(--mono); font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Table de pairing 40K</h1>
+      <small>Aide à la décision pour le pairing par équipes, selon le Warhammer 40,000 Teams Event Companion v1.0 (3 à 8 joueurs)</small>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" id="tab-pairing" aria-selected="true" data-tab="pairing">Pairing</button>
+      <button role="tab" id="tab-matrix" aria-selected="false" data-tab="matrix">Matrice</button>
+      <button role="tab" id="tab-method" aria-selected="false" data-tab="method">Méthode</button>
+    </nav>
+  </header>
+  <main id="app"></main>
+</div>
+<script type="module" src="src/ui.js"></script>
+</body>
+</html>

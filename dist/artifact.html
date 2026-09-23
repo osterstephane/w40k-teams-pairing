@@ -1,0 +1,1613 @@
+<title>Table de pairing 40K</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #f5f7fa;
+  --ink: #18202b;
+  --muted: #5b6676;
+  --line: #d5dbe3;
+  --accent: #946510;
+  --accent-ink: #ffffff;
+  --accent-soft: #f4e8cc;
+  --good: #1f7a4d;
+  --bad: #b3362b;
+  --draw: #7c8797;
+  --focus: #2f64d6;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #11151b; --surface: #181e26; --surface-2: #1f2630; --ink: #e4e8ee; --muted: #9aa4b2;
+    --line: #2c3541; --accent: #d8a546; --accent-ink: #1a1305; --accent-soft: #3a2f18;
+    --good: #4cc38a; --bad: #f0786a; --draw: #8c96a5; --focus: #7aa2ff;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #11151b; --surface: #181e26; --surface-2: #1f2630; --ink: #e4e8ee; --muted: #9aa4b2;
+  --line: #2c3541; --accent: #d8a546; --accent-ink: #1a1305; --accent-soft: #3a2f18;
+  --good: #4cc38a; --bad: #f0786a; --draw: #8c96a5; --focus: #7aa2ff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--body); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 48px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: 30px; }
+h2 { font-size: 22px; }
+h3 { font-size: 17px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+p { margin: 0; }
+.num, td.num, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+button, select, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; padding-block: 8px 16px; border-bottom: 2px solid var(--ink); }
+.brand { display: grid; gap: 2px; }
+.brand small { color: var(--muted); font-size: 13px; }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+nav.tabs button { border: 1px solid var(--line); background: var(--surface); padding: 6px 14px; border-radius: 4px; cursor: pointer; font-family: var(--display); font-size: 17px; font-weight: 600; letter-spacing: .03em; }
+nav.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.small { padding: 2px 8px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+section.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 12px; align-content: start; }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; margin-top: 16px; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
+.stack { display: grid; gap: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.field { display: grid; gap: 4px; }
+.field > span { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.field input, .field select, .field textarea, select.inp, input.inp { background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; }
+.field input[type="range"] { padding: 0; accent-color: var(--accent); }
+.muted { color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); max-width: 70ch; }
+.warn { color: var(--bad); font-size: 13px; }
+
+/* Projection */
+.proj { display: grid; gap: 10px; }
+.vdl { display: flex; height: 26px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.vdl > div { display: grid; place-items: center; font: 500 12px var(--mono); color: #fff; min-width: 0; overflow: hidden; white-space: nowrap; }
+.vdl .w { background: var(--good); }
+.vdl .d { background: var(--draw); }
+.vdl .l { background: var(--bad); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 13px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; text-align: right; white-space: nowrap; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.bigline { display: flex; gap: 16px; flex-wrap: wrap; align-items: baseline; }
+.big { font: 700 34px var(--display); }
+
+/* Timeline */
+ol.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+ol.timeline li { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+ol.timeline li.now { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+ol.timeline li.past { color: var(--ink); text-decoration: line-through; text-decoration-color: var(--muted); }
+
+/* Recommendation */
+.reco { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 4px 4px 0; display: grid; gap: 6px; }
+.reco strong { font-weight: 600; }
+.chip { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; text-transform: uppercase; letter-spacing: .04em; }
+.chip.best { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.chip.eq { border-color: var(--accent); color: var(--ink); }
+.chip.bad { border-color: var(--bad); color: var(--bad); }
+
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+th { font-weight: 600; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+td.num, th.num { text-align: right; }
+tr.picked td { background: var(--accent-soft); }
+.minibar { display: flex; width: 90px; height: 10px; border-radius: 2px; overflow: hidden; background: var(--surface-2); }
+.minibar i { display: block; height: 100%; }
+.minibar .w { background: var(--good); } .minibar .d { background: var(--draw); } .minibar .l { background: var(--bad); }
+
+table.heat { width: auto; }
+table.heat td { text-align: center; font-family: var(--mono); font-size: 12px; padding: 4px 6px; border: 1px solid var(--line); min-width: 44px; }
+table.heat th { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--ink); font-weight: 500; }
+table.heat th.col { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; padding: 6px 2px; }
+
+/* Matrix editor */
+table.editor td { padding: 2px; border: 1px solid var(--line); }
+table.editor input { width: 64px; border: 0; background: transparent; padding: 5px 4px; text-align: center; font-family: var(--mono); font-size: 13px; }
+table.editor input.name { width: 130px; text-align: left; font-family: var(--body); font-weight: 500; }
+table.editor th { padding: 2px; }
+table.editor th input.name { width: 92px; text-align: center; }
+.layout-tabs { display: flex; gap: 4px; }
+.layout-tabs button { border: 1px solid var(--line); background: var(--surface-2); padding: 3px 12px; border-radius: 4px; cursor: pointer; font-family: var(--mono); }
+.layout-tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+ul.games { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+ul.games li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 6px 8px; background: var(--surface-2); border-radius: 4px; font-size: 13px; }
+ul.games .role { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+.progress { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+@media (prefers-reduced-motion: reduce) { .progress i { transition: none; } }
+.choose { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; align-items: end; padding: 12px; border: 1px dashed var(--line); border-radius: 4px; }
+details > summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+.method { max-width: 75ch; display: grid; gap: 12px; }
+.method h2 { margin-top: 8px; }
+.method ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+textarea { width: 100%; min-height: 110px; font-family: var(--mono); font-size: 12px; }
+</style>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Table de pairing 40K</h1>
+      <small>Aide à la décision pour le pairing par équipes, selon le Warhammer 40,000 Teams Event Companion v1.0 (3 à 8 joueurs)</small>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" id="tab-pairing" aria-selected="true" data-tab="pairing">Pairing</button>
+      <button role="tab" id="tab-matrix" aria-selected="false" data-tab="matrix">Matrice</button>
+      <button role="tab" id="tab-method" aria-selected="false" data-tab="method">Méthode</button>
+    </nav>
+  </header>
+  <main id="app"></main>
+</div>
+<script>window.__CORE_SOURCE__ = "// ---- src/rules.js\n// Rules data from the Games Workshop \"Warhammer 40,000 Teams Event Companion\"\n// (version 1.0, file eng_22-07_warhammer_40,000_teams_event_companion).\n// Kept as plain data so the solver never hard-codes team-size specifics.\n\n// Section 2 \"Pairing System\": modules used per team size.\n//   S = Initial Skirmish, M = Main Engagement, C = Champion System.\nconst MODULES_BY_SIZE = {\n  3: ['M'],\n  4: ['M', 'C'],\n  5: ['S', 'M'],\n  6: ['S', 'M', 'C'],\n  7: ['S', 'S', 'M'],\n  8: ['S', 'S', 'M', 'C'],\n};\n\n// Section 14 \"Team Scoring\": a team must exceed its opponent by at least Y BP to win.\nconst WIN_DIFFERENTIAL = { 3: 4, 4: 6, 5: 6, 6: 8, 7: 10, 8: 12 };\n\n// Section 14: VP difference -> Battle Points (player, opponent). Sum is always 20.\nconst BP_TABLE = [\n  [5, 10], [10, 11], [15, 12], [20, 13], [25, 14], [30, 15],\n  [35, 16], [40, 17], [45, 18], [50, 19],\n];\n\nfunction vpDiffToBp(diff) {\n  const d = Math.abs(diff);\n  let bp = 20;\n  for (const [max, v] of BP_TABLE) if (d <= max) { bp = v; break; }\n  return diff >= 0 ? bp : 20 - bp;\n}\n\n// Team Points: win 3, draw 2, loss 1.\nconst TEAM_POINTS = { win: 3, draw: 2, loss: 1 };\n\nconst LAYOUTS = ['A', 'B', 'C'];\n\n// Refused attackers (Main Engagement step 8) and Champions use the layout\n// given by the round: round 1 -> A, round 2 -> B, round 3 -> C, repeating.\nfunction layoutForRound(round) {\n  return (((round - 1) % 3) + 3) % 3;\n}\n\n// Team BP thresholds on \"our\" total (both totals sum to 20 * n).\n//   win  : ours - theirs >= Y  <=> ours >= 10n + Y/2\n//   loss : theirs - ours >= Y  <=> ours <= 10n - Y/2\nfunction thresholds(n) {\n  const y = WIN_DIFFERENTIAL[n];\n  return { win: 10 * n + y / 2, loss: 10 * n - y / 2, total: 20 * n, differential: y };\n}\n\n// ---- src/matrixgame.js\n// Zero-sum matrix game solver.\n// The row player maximises, the column player minimises the row payoff.\n// Returns { x: row mixed strategy, y: column mixed strategy, v: game value }.\n\nconst EPS = 1e-12;\n\nfunction solve2x2(a, b, c, d) {\n  // [[a, b], [c, d]]\n  // Pure saddle point check.\n  const r0 = Math.min(a, b), r1 = Math.min(c, d);\n  const c0 = Math.max(a, c), c1 = Math.max(b, d);\n  const maximin = Math.max(r0, r1);\n  const minimax = Math.min(c0, c1);\n  if (maximin >= minimax - EPS) {\n    const i = r0 >= r1 ? 0 : 1;\n    const j = c0 <= c1 ? 0 : 1;\n    return { x: i === 0 ? [1, 0] : [0, 1], y: j === 0 ? [1, 0] : [0, 1], v: maximin };\n  }\n  const den = a - b - c + d;\n  const p = (d - c) / den; // prob of row 0\n  const q = (d - b) / den; // prob of column 0\n  return { x: [p, 1 - p], y: [q, 1 - q], v: (a * d - b * c) / den };\n}\n\n// A: array of rows (m x n).\nfunction solveMatrixGame(A) {\n  const m = A.length, n = A[0].length;\n  if (m === 1 || n === 1) return solveDegenerate(A);\n  if (m === 2 && n === 2) return solve2x2(A[0][0], A[0][1], A[1][0], A[1][1]);\n\n  // Pure saddle point shortcut (very common in practice).\n  let maximin = -Infinity, bi = 0;\n  for (let i = 0; i < m; i++) {\n    let mn = Infinity;\n    for (let j = 0; j < n; j++) if (A[i][j] < mn) mn = A[i][j];\n    if (mn > maximin) { maximin = mn; bi = i; }\n  }\n  let minimax = Infinity, bj = 0;\n  for (let j = 0; j < n; j++) {\n    let mx = -Infinity;\n    for (let i = 0; i < m; i++) if (A[i][j] > mx) mx = A[i][j];\n    if (mx < minimax) { minimax = mx; bj = j; }\n  }\n  if (maximin >= minimax - EPS) {\n    const x = new Array(m).fill(0); x[bi] = 1;\n    const y = new Array(n).fill(0); y[bj] = 1;\n    return { x, y, v: maximin };\n  }\n  return simplex(A, m, n);\n}\n\nfunction solveDegenerate(A) {\n  const m = A.length, n = A[0].length;\n  if (m === 1) {\n    let j0 = 0;\n    for (let j = 1; j < n; j++) if (A[0][j] < A[0][j0]) j0 = j;\n    const y = new Array(n).fill(0); y[j0] = 1;\n    return { x: [1], y, v: A[0][j0] };\n  }\n  let i0 = 0;\n  for (let i = 1; i < m; i++) if (A[i][0] > A[i0][0]) i0 = i;\n  const x = new Array(m).fill(0); x[i0] = 1;\n  return { x, y: [1], v: A[i0][0] };\n}\n\n// Column player's LP on a strictly positive shifted matrix:\n//   maximise sum(y) s.t. A' y <= 1, y >= 0.  value = 1 / sum(y).\n// Row strategy is read from the dual (objective-row coefficients of slacks).\nfunction simplex(A, m, n) {\n  let min = Infinity;\n  for (let i = 0; i < m; i++) for (let j = 0; j < n; j++) if (A[i][j] < min) min = A[i][j];\n  const shift = 1 - min;\n  const W = n + m + 1; // columns: y (n), slacks (m), rhs\n  const T = new Float64Array((m + 1) * W);\n  for (let i = 0; i < m; i++) {\n    const r = i * W;\n    for (let j = 0; j < n; j++) T[r + j] = A[i][j] + shift;\n    T[r + n + i] = 1;\n    T[r + W - 1] = 1;\n  }\n  const obj = m * W;\n  for (let j = 0; j < n; j++) T[obj + j] = -1;\n  const basis = new Int32Array(m);\n  for (let i = 0; i < m; i++) basis[i] = n + i;\n\n  for (let iter = 0; iter < 10000; iter++) {\n    // Bland's rule: first improving column.\n    let pc = -1;\n    for (let j = 0; j < n + m; j++) if (T[obj + j] < -1e-12) { pc = j; break; }\n    if (pc < 0) break;\n    let pr = -1, best = Infinity;\n    for (let i = 0; i < m; i++) {\n      const a = T[i * W + pc];\n      if (a > 1e-12) {\n        const ratio = T[i * W + W - 1] / a;\n        if (ratio < best - 1e-12 || (Math.abs(ratio - best) <= 1e-12 && basis[i] < basis[pr])) {\n          best = ratio; pr = i;\n        }\n      }\n    }\n    if (pr < 0) break; // unbounded: cannot happen with positive matrix\n    const pv = T[pr * W + pc];\n    for (let k = 0; k < W; k++) T[pr * W + k] /= pv;\n    for (let i = 0; i <= m; i++) {\n      if (i === pr) continue;\n      const f = T[i * W + pc];\n      if (f !== 0) for (let k = 0; k < W; k++) T[i * W + k] -= f * T[pr * W + k];\n    }\n    basis[pr] = pc;\n  }\n  const sumY = T[obj + W - 1];\n  const vShift = 1 / sumY;\n  const y = new Array(n).fill(0);\n  for (let i = 0; i < m; i++) if (basis[i] < n) y[basis[i]] = T[i * W + W - 1] * vShift;\n  const x = new Array(m);\n  for (let i = 0; i < m; i++) x[i] = Math.max(0, T[obj + n + i]) * vShift;\n  return { x: normalise(x), y: normalise(y), v: vShift - shift };\n}\n\nfunction normalise(p) {\n  let s = 0;\n  for (const v of p) s += v;\n  return s > 0 ? p.map((v) => v / s) : p;\n}\n\n// ---- src/engine.js\n// Pairing decision engine.\n//\n// Model\n// -----\n// mu[l][a][b] : expected Battle Points (0-20) for OUR player a against THEIR\n//               player b on layout l (0 = A, 1 = B, 2 = C).\n// sd[l][a][b] : standard deviation of that BP result (uncertainty of the estimate\n//               plus dice). Games are assumed independent, so the team total is\n//               approximated by a normal distribution N(sum mu, sum sd^2).\n//\n// The pairing is a sequence of simultaneous secret choices (defender, attackers,\n// which attacker to accept). Every such step is solved as a zero-sum matrix game,\n// with backward induction over the whole pairing tree.\n//\n// Objective (maximised by us, minimised by the opponent):\n//   obj = (1 - marginWeight) * (P(win) + drawValue * P(draw))\n//       +      marginWeight  * (E[our BP] / total BP)\n// drawValue = 0.5, marginWeight = 0  <=>  maximise expected Team Points.\n//\n// Two layers:\n//  - \"obj\" layer: objective value only, memoised, used to find the equilibria;\n//  - \"metrics\" layer: follows the equilibria found by the obj layer and returns\n//    [obj, P(win), P(draw), P(loss), E[our BP]].\n//\n// Documented simplifications (see docs/MODEL.md):\n//  - in the look-ahead, a defender picks the layout with the best expected BP for\n//    its side (the live state always uses the layout actually declared);\n//  - the accumulated mean / variance are snapped to a small grid at the start of\n//    each non-final module so sub-trees can be shared (default 0.5 BP, 4 BP^2).\n\n\n\nconst METRIC = { OBJ: 0, WIN: 1, DRAW: 2, LOSS: 3, BP: 4 };\n\nfunction bits(mask) {\n  const out = [];\n  for (let i = 0; mask; i++, mask >>= 1) if (mask & 1) out.push(i);\n  return out;\n}\n\nfunction pairs(list) {\n  const out = [];\n  for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) out.push([list[i], list[j]]);\n  return out;\n}\n\n// Standard normal CDF (Abramowitz & Stegun 7.1.26, |err| < 1.5e-7).\nfunction phi(z) {\n  const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2);\n  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z / 2);\n  return z >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);\n}\n\nfunction value2x2(a, b, c, d) {\n  const maximin = Math.max(Math.min(a, b), Math.min(c, d));\n  const minimax = Math.min(Math.max(a, c), Math.max(b, d));\n  if (maximin >= minimax - 1e-12) return maximin;\n  return (a * d - b * c) / (a - b - c + d);\n}\n\nfunction lowBit(mask) {\n  return 31 - Math.clz32(mask & -mask);\n}\n\nfunction createEngine(config) {\n  const n = config.n;\n  const modules = MODULES_BY_SIZE[n];\n  if (!modules) throw new Error(`Unsupported team size ${n} (3 to 8)`);\n  const th = thresholds(n);\n  const round = config.round ?? 1;\n  const fixedLayout = layoutForRound(round);\n  const drawValue = config.objective?.drawValue ?? 0.5;\n  const marginWeight = config.objective?.marginWeight ?? 0;\n  const qm = config.quantum?.mean ?? 0.5;\n  const qv = config.quantum?.variance ?? 4;\n  const mu = config.mu, sd = config.sd;\n\n  // Per role: layout used, mean and variance of the game (look-ahead model).\n  const ourDefLayout = new Int8Array(n * n), theirDefLayout = new Int8Array(n * n);\n  const OM = new Float64Array(n * n), OV = new Float64Array(n * n); // our defender game\n  const TM = new Float64Array(n * n), TV = new Float64Array(n * n); // their defender game\n  const FM = new Float64Array(n * n), FV = new Float64Array(n * n); // fixed-layout game\n  for (let a = 0; a < n; a++) {\n    for (let b = 0; b < n; b++) {\n      const k = a * n + b;\n      let best = 0, worst = 0;\n      for (let l = 1; l < 3; l++) {\n        if (mu[l][a][b] > mu[best][a][b]) best = l;\n        if (mu[l][a][b] < mu[worst][a][b]) worst = l;\n      }\n      ourDefLayout[k] = best; theirDefLayout[k] = worst;\n      OM[k] = mu[best][a][b]; OV[k] = sd[best][a][b] ** 2;\n      TM[k] = mu[worst][a][b]; TV[k] = sd[worst][a][b] ** 2;\n      FM[k] = mu[fixedLayout][a][b]; FV[k] = sd[fixedLayout][a][b] ** 2;\n    }\n  }\n\n  const winZ = th.win - 0.5, lossZ = th.loss + 0.5;\n\n  function terminal(M, V) {\n    const s = Math.sqrt(Math.max(V, 1e-4));\n    const pW = 1 - phi((winZ - M) / s);\n    const pL = phi((lossZ - M) / s);\n    const pD = Math.max(0, 1 - pW - pL);\n    const obj = (1 - marginWeight) * (pW + drawValue * pD) + marginWeight * (M / th.total);\n    return [obj, pW, pD, pL, M];\n  }\n\n  function terminalObj(M, V) {\n    const s = Math.sqrt(Math.max(V, 1e-4));\n    const pW = 1 - phi((winZ - M) / s);\n    const pL = phi((lossZ - M) / s);\n    return (1 - marginWeight) * (pW + drawValue * Math.max(0, 1 - pW - pL)) + marginWeight * (M / th.total);\n  }\n\n  const snapM = (M) => Math.round(M / qm) * qm;\n  const snapV = (V) => Math.round(V / qv) * qv;\n  // Numeric memo keys while they stay exact (always true with the default grid);\n  // string keys otherwise (e.g. very fine grids used in tests).\n  const mRange = Math.ceil(2 * 20 * n / qm) + 2, vRange = Math.ceil(n * 400 / qv) + 2;\n  const numericKeys = mRange * vRange * 8 * 65536 < Number.MAX_SAFE_INTEGER;\n  const keyOf = numericKeys\n    ? (remA, remB, mod, M, V) => (((Math.round(V / qv) * mRange + Math.round(M / qm)) * 8 + mod) * 256 + remB) * 256 + remA\n    : (remA, remB, mod, M, V) => `${remA},${remB},${mod},${Math.round(M / qm)},${Math.round(V / qv)}`;\n\n  const objMemo = new Map();\n  const metMemo = new Map();\n\n  // Next state after the step-5 choices (k: which of their attackers our defender\n  // plays, l: which of our attackers their defender plays).\n  function transition(remA, remB, mod, M, V, dA, dB, pa, pb, k, l) {\n    const g1 = dA * n + pb[k], g2 = pa[l] * n + dB;\n    M += OM[g1] + TM[g2];\n    V += OV[g1] + TV[g2];\n    let nA, nB;\n    if (modules[mod] === 'M') {\n      const g3 = pa[1 - l] * n + pb[1 - k];\n      M += FM[g3]; V += FV[g3];\n      nA = remA & ~(1 << dA) & ~(1 << pa[0]) & ~(1 << pa[1]);\n      nB = remB & ~(1 << dB) & ~(1 << pb[0]) & ~(1 << pb[1]);\n    } else {\n      nA = remA & ~(1 << dA) & ~(1 << pa[l]);\n      nB = remB & ~(1 << dB) & ~(1 << pb[k]);\n    }\n    mod++;\n    // Champion System: forced pairing of the last player of each team.\n    while (mod < modules.length && modules[mod] === 'C') {\n      const c = lowBit(nA) * n + lowBit(nB);\n      M += FM[c]; V += FV[c];\n      nA = 0; nB = 0; mod++;\n    }\n    return { remA: nA, remB: nB, mod, M, V, terminal: mod >= modules.length };\n  }\n\n  // ---------------------------------------------------------------- obj layer\n\n  function objModule(remA, remB, mod, M, V) {\n    while (mod < modules.length && modules[mod] === 'C') {\n      const c = lowBit(remA) * n + lowBit(remB);\n      M += FM[c]; V += FV[c]; remA = 0; remB = 0; mod++;\n    }\n    if (mod >= modules.length) return terminalObj(M, V);\n    M = snapM(M); V = snapV(V);\n    const key = keyOf(remA, remB, mod, M, V);\n    let v = objMemo.get(key);\n    if (v !== undefined) return v;\n    v = modules[mod] === 'M' ? finalModuleObj(remA, remB, M, V) : objDefenderStage(remA, remB, mod, M, V).eq.v;\n    objMemo.set(key, v);\n    return v;\n  }\n\n  function objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, k, l) {\n    const t = transition(remA, remB, mod, M, V, dA, dB, pa, pb, k, l);\n    return t.terminal ? terminalObj(t.M, t.V) : objModule(t.remA, t.remB, t.mod, t.M, t.V);\n  }\n\n  function objChooseStage(remA, remB, mod, M, V, dA, dB, pa, pb) {\n    const A = [\n      [objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, 0, 0), objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, 0, 1)],\n      [objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, 1, 0), objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, 1, 1)],\n    ];\n    return { A, eq: solve2x2(A[0][0], A[0][1], A[1][0], A[1][1]) };\n  }\n\n  function objAttackerStage(remA, remB, mod, M, V, dA, dB) {\n    const rows = pairs(bits(remA & ~(1 << dA)));\n    const cols = pairs(bits(remB & ~(1 << dB)));\n    const A = rows.map((pa) => cols.map((pb) => objChooseStage(remA, remB, mod, M, V, dA, dB, pa, pb).eq.v));\n    return { rows, cols, A, eq: solveMatrixGame(A) };\n  }\n\n  function objDefenderStage(remA, remB, mod, M, V) {\n    const rows = bits(remA), cols = bits(remB);\n    const A = rows.map((dA) => cols.map((dB) => objAttackerStage(remA, remB, mod, M, V, dA, dB).eq.v));\n    return { rows, cols, A, eq: solveMatrixGame(A) };\n  }\n\n  // Fast path for the Main Engagement (always the last choice module): no\n  // allocation per leaf, no memo for terminal states. Same maths as the\n  // generic stages above.\n  function finalModuleObj(remA, remB, M, V) {\n    const LA = bits(remA), LB = bits(remB), r = LA.length;\n    const champ = r === 4;\n    const D = [];\n    for (let iA = 0; iA < r; iA++) {\n      const dA = LA[iA];\n      const oA = LA.filter((x) => x !== dA);\n      const PA = pairs(oA);\n      const row = [];\n      for (let iB = 0; iB < r; iB++) {\n        const dB = LB[iB];\n        const oB = LB.filter((x) => x !== dB);\n        const PB = pairs(oB);\n        const att = [];\n        for (const pa of PA) {\n          const cA = champ ? oA.find((x) => x !== pa[0] && x !== pa[1]) : -1;\n          const arow = [];\n          for (const pb of PB) {\n            let m0 = M, v0 = V;\n            if (champ) {\n              const cB = oB.find((x) => x !== pb[0] && x !== pb[1]);\n              m0 += FM[cA * n + cB]; v0 += FV[cA * n + cB];\n            }\n            const g1a = dA * n + pb[0], g1b = dA * n + pb[1];\n            const g2a = pa[0] * n + dB, g2b = pa[1] * n + dB;\n            // k = 0/1: our defender plays pb[k]; l = 0/1: their defender plays pa[l].\n            const o00 = terminalObj(m0 + OM[g1a] + TM[g2a] + FM[pa[1] * n + pb[1]], v0 + OV[g1a] + TV[g2a] + FV[pa[1] * n + pb[1]]);\n            const o01 = terminalObj(m0 + OM[g1a] + TM[g2b] + FM[pa[0] * n + pb[1]], v0 + OV[g1a] + TV[g2b] + FV[pa[0] * n + pb[1]]);\n            const o10 = terminalObj(m0 + OM[g1b] + TM[g2a] + FM[pa[1] * n + pb[0]], v0 + OV[g1b] + TV[g2a] + FV[pa[1] * n + pb[0]]);\n            const o11 = terminalObj(m0 + OM[g1b] + TM[g2b] + FM[pa[0] * n + pb[0]], v0 + OV[g1b] + TV[g2b] + FV[pa[0] * n + pb[0]]);\n            arow.push(value2x2(o00, o01, o10, o11));\n          }\n          att.push(arow);\n        }\n        row.push(solveMatrixGame(att).v);\n      }\n      D.push(row);\n    }\n    return solveMatrixGame(D).v;\n  }\n\n  // ------------------------------------------------------------ metrics layer\n\n  function mix(eq, cellFn) {\n    const out = [0, 0, 0, 0, 0];\n    for (let i = 0; i < eq.x.length; i++) {\n      if (eq.x[i] < 1e-9) continue;\n      for (let j = 0; j < eq.y.length; j++) {\n        const w = eq.x[i] * eq.y[j];\n        if (w < 1e-9) continue;\n        const c = cellFn(i, j);\n        for (let t = 0; t < 5; t++) out[t] += w * c[t];\n      }\n    }\n    return out;\n  }\n\n  function metModule(remA, remB, mod, M, V) {\n    while (mod < modules.length && modules[mod] === 'C') {\n      const c = lowBit(remA) * n + lowBit(remB);\n      M += FM[c]; V += FV[c]; remA = 0; remB = 0; mod++;\n    }\n    if (mod >= modules.length) return terminal(M, V);\n    M = snapM(M); V = snapV(V);\n    const key = keyOf(remA, remB, mod, M, V);\n    let v = metMemo.get(key);\n    if (v) return v;\n    const st = objDefenderStage(remA, remB, mod, M, V);\n    v = mix(st.eq, (i, j) => metAttacker(remA, remB, mod, M, V, st.rows[i], st.cols[j]));\n    v[0] = st.eq.v;\n    metMemo.set(key, v);\n    return v;\n  }\n\n  function metAttacker(remA, remB, mod, M, V, dA, dB) {\n    const st = objAttackerStage(remA, remB, mod, M, V, dA, dB);\n    const v = mix(st.eq, (i, j) => metChoose(remA, remB, mod, M, V, dA, dB, st.rows[i], st.cols[j]));\n    v[0] = st.eq.v;\n    return v;\n  }\n\n  function metChoose(remA, remB, mod, M, V, dA, dB, pa, pb) {\n    const st = objChooseStage(remA, remB, mod, M, V, dA, dB, pa, pb);\n    const v = mix(st.eq, (k, l) => metOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, k, l));\n    v[0] = st.eq.v;\n    return v;\n  }\n\n  function metOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, k, l) {\n    const t = transition(remA, remB, mod, M, V, dA, dB, pa, pb, k, l);\n    return t.terminal ? terminal(t.M, t.V) : metModule(t.remA, t.remB, t.mod, t.M, t.V);\n  }\n\n  return {\n    n, modules, thresholds: th, fixedLayout, round,\n    ourDefLayout: (a, b) => ourDefLayout[a * n + b],\n    theirDefLayout: (a, b) => theirDefLayout[a * n + b],\n    terminal,\n    transition,\n    snap: (M, V) => ({ M: snapM(M), V: snapV(V) }),\n    // Objective only (fast).\n    objModule, objDefenderStage, objAttackerStage, objChooseStage, objOutcome,\n    // Full metrics following the equilibrium.\n    metModule, metAttacker, metChoose, metOutcome,\n    stats: () => ({ objStates: objMemo.size, metStates: metMemo.size }),\n  };\n}\n\n// ---- src/pairing.js\n// Live pairing state machine (Teams Event Companion, section 2 \"Pairing System\").\n// Pure functions: every transition returns a new state.\n//\n// Steps inside Initial Skirmish (S) / Main Engagement (M):\n//   'defenders' -> 'attackers' -> 'choices' -> 'layouts'\n// Champion System (C) is resolved automatically.\n\n\n\nfunction initialState(n, round = 1) {\n  const modules = MODULES_BY_SIZE[n];\n  if (!modules) throw new Error(`Unsupported team size ${n}`);\n  const full = (1 << n) - 1;\n  return resolveForced({ n, round, modules, mod: 0, remA: full, remB: full, games: [], step: 'defenders' });\n}\n\n// Resolves Champion modules and end of pairing.\nfunction resolveForced(s) {\n  s = { ...s };\n  while (s.mod < s.modules.length && s.modules[s.mod] === 'C') {\n    const a = bits(s.remA)[0], b = bits(s.remB)[0];\n    s.games = [...s.games, { a, b, layout: layoutForRound(s.round), role: 'champion', module: s.mod }];\n    s.remA = 0; s.remB = 0; s.mod++;\n  }\n  if (s.mod >= s.modules.length) s.step = 'done';\n  return s;\n}\n\nfunction has(mask, i) {\n  return (mask >> i) & 1;\n}\n\nfunction setDefenders(s, dA, dB) {\n  if (s.step !== 'defenders') throw new Error('Not at defender step');\n  if (!has(s.remA, dA) || !has(s.remB, dB)) throw new Error('Defender not available');\n  return { ...s, dA, dB, step: 'attackers' };\n}\n\n// pa: our two attackers (against their defender), pb: their two attackers.\nfunction setAttackers(s, pa, pb) {\n  if (s.step !== 'attackers') throw new Error('Not at attacker step');\n  const okA = pa.length === 2 && pa[0] !== pa[1] && pa.every((x) => x !== s.dA && has(s.remA, x));\n  const okB = pb.length === 2 && pb[0] !== pb[1] && pb.every((x) => x !== s.dB && has(s.remB, x));\n  if (!okA || !okB) throw new Error('Invalid attackers');\n  return { ...s, pa: [...pa].sort((x, y) => x - y), pb: [...pb].sort((x, y) => x - y), step: 'choices' };\n}\n\n// k: index in pb of the attacker OUR defender accepts.\n// l: index in pa of the attacker THEIR defender accepts.\nfunction setChoices(s, k, l) {\n  if (s.step !== 'choices') throw new Error('Not at choice step');\n  if (![0, 1].includes(k) || ![0, 1].includes(l)) throw new Error('Invalid choice');\n  return { ...s, k, l, step: 'layouts' };\n}\n\n// Layout declared by each defender for its own game (0 = A, 1 = B, 2 = C).\nfunction setLayouts(s, ourLayout, theirLayout) {\n  if (s.step !== 'layouts') throw new Error('Not at layout step');\n  const { dA, dB, pa, pb, k, l } = s;\n  const type = s.modules[s.mod];\n  const games = [\n    ...s.games,\n    { a: dA, b: pb[k], layout: ourLayout, role: 'ourDefender', module: s.mod },\n    { a: pa[l], b: dB, layout: theirLayout, role: 'theirDefender', module: s.mod },\n  ];\n  let remA, remB;\n  if (type === 'M') {\n    games.push({ a: pa[1 - l], b: pb[1 - k], layout: layoutForRound(s.round), role: 'refused', module: s.mod });\n    remA = s.remA & ~(1 << dA) & ~(1 << pa[0]) & ~(1 << pa[1]);\n    remB = s.remB & ~(1 << dB) & ~(1 << pb[0]) & ~(1 << pb[1]);\n  } else {\n    remA = s.remA & ~(1 << dA) & ~(1 << pa[l]);\n    remB = s.remB & ~(1 << dB) & ~(1 << pb[k]);\n  }\n  const next = { n: s.n, round: s.round, modules: s.modules, mod: s.mod + 1, remA, remB, games, step: 'defenders' };\n  return resolveForced(next);\n}\n\n// Accumulated mean / variance of our BP from the games already fixed.\nfunction accumulated(s, mu, sd) {\n  let M = 0, V = 0;\n  for (const g of s.games) {\n    M += mu[g.layout][g.a][g.b];\n    V += sd[g.layout][g.a][g.b] ** 2;\n  }\n  return { M, V };\n}\n\n// ---- src/advisor.js\n// Turns engine results into decision support for the current pairing step.\n\n\n\nfunction metricsOf(v) {\n  const [obj, win, draw, loss, bp] = v;\n  return { obj, win, draw, loss, bp, tp: 3 * win + 2 * draw + loss };\n}\n\nfunction weighted(list) {\n  const out = [0, 0, 0, 0, 0];\n  for (const [w, v] of list) for (let t = 0; t < 5; t++) out[t] += w * v[t];\n  return out;\n}\n\n// Generic analysis of a simultaneous step given its objective matrix A and a\n// function returning full metrics for a cell.\nfunction analyse(A, rowLabels, colLabels, cellMetrics) {\n  const eq = solveMatrixGame(A);\n  const m = A.length, nc = A[0].length;\n  const cache = new Map();\n  const cell = (i, j) => {\n    const k = i * nc + j;\n    if (!cache.has(k)) cache.set(k, cellMetrics(i, j));\n    return cache.get(k);\n  };\n  const rows = [];\n  for (let i = 0; i < m; i++) {\n    let vsEq = 0, worst = Infinity, best = -Infinity, worstCol = 0;\n    for (let j = 0; j < nc; j++) {\n      vsEq += eq.y[j] * A[i][j];\n      if (A[i][j] < worst) { worst = A[i][j]; worstCol = j; }\n      if (A[i][j] > best) best = A[i][j];\n    }\n    const met = weighted(eq.y.map((y, j) => [y, y > 1e-9 ? cell(i, j) : [0, 0, 0, 0, 0]]));\n    met[0] = vsEq;\n    rows.push({ index: i, label: rowLabels[i], prob: eq.x[i], vsEq, worst, best, worstCol, metrics: metricsOf(met) });\n  }\n  const cols = [];\n  for (let j = 0; j < nc; j++) {\n    let vsEq = 0, best = -Infinity, bestRow = 0;\n    for (let i = 0; i < m; i++) {\n      vsEq += eq.x[i] * A[i][j];\n      if (A[i][j] > best) { best = A[i][j]; bestRow = i; }\n    }\n    cols.push({ index: j, label: colLabels[j], prob: eq.y[j], vsEq, bestResponse: bestRow, bestResponseValue: best });\n  }\n  const projection = weighted(rows.map((r) => [r.prob, [r.metrics.obj, r.metrics.win, r.metrics.draw, r.metrics.loss, r.metrics.bp]]));\n  projection[0] = eq.v;\n  return { A, eq, value: eq.v, rows, cols, projection: metricsOf(projection) };\n}\n\nfunction advise(engine, state, mu, sd, onProgress) {\n  const acc = accumulated(state, mu, sd);\n  if (state.step === 'done') {\n    return { step: 'done', projection: metricsOf(engine.terminal(acc.M, acc.V)), accumulated: acc };\n  }\n  const { M, V } = engine.snap(acc.M, acc.V);\n  const { remA, remB, mod } = state;\n\n  if (state.step === 'defenders') {\n    const rows = listBits(remA), cols = listBits(remB);\n    const total = rows.length * cols.length;\n    let done = 0;\n    const A = rows.map((dA) => cols.map((dB) => {\n      const v = engine.objAttackerStage(remA, remB, mod, M, V, dA, dB).eq.v;\n      done++;\n      if (onProgress) onProgress(done / total);\n      return v;\n    }));\n    const res = analyse(A, rows, cols, (i, j) => engine.metAttacker(remA, remB, mod, M, V, rows[i], cols[j]));\n    return { step: 'defenders', accumulated: acc, ...res };\n  }\n\n  const { dA, dB } = state;\n  if (state.step === 'attackers') {\n    const st = engine.objAttackerStage(remA, remB, mod, M, V, dA, dB);\n    const res = analyse(st.A, st.rows, st.cols, (i, j) => engine.metChoose(remA, remB, mod, M, V, dA, dB, st.rows[i], st.cols[j]));\n    return { step: 'attackers', accumulated: acc, ...res };\n  }\n\n  const { pa, pb } = state;\n  if (state.step === 'choices') {\n    const st = engine.objChooseStage(remA, remB, mod, M, V, dA, dB, pa, pb);\n    // rows: k (their attacker our defender plays), cols: l (our attacker their defender plays)\n    const res = analyse(st.A, [pb[0], pb[1]], [pa[0], pa[1]], (k, l) => engine.metOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, k, l));\n    return { step: 'choices', accumulated: acc, ...res };\n  }\n\n  if (state.step === 'layouts') {\n    const { k, l } = state;\n    const ourGame = { a: dA, b: pb[k] }, theirGame = { a: pa[l], b: dB };\n    const theirAssumed = engine.theirDefLayout(theirGame.a, theirGame.b);\n    const options = [0, 1, 2].map((layout) => {\n      const next = setLayouts(state, layout, theirAssumed);\n      const nAcc = accumulated(next, mu, sd);\n      const met = next.step === 'done'\n        ? engine.terminal(nAcc.M, nAcc.V)\n        : engine.metModule(next.remA, next.remB, next.mod, nAcc.M, nAcc.V);\n      return { layout, gameMean: mu[layout][ourGame.a][ourGame.b], gameSd: sd[layout][ourGame.a][ourGame.b], metrics: metricsOf(met) };\n    });\n    let best = 0;\n    for (let i = 1; i < 3; i++) if (options[i].metrics.obj > options[best].metrics.obj + 1e-12) best = i;\n    return {\n      step: 'layouts', accumulated: acc, ourGame, theirGame, theirAssumed, options, best,\n      theirOptions: [0, 1, 2].map((layout) => ({ layout, gameMean: mu[layout][theirGame.a][theirGame.b] })),\n      projection: options[best].metrics,\n    };\n  }\n  throw new Error(`Unknown step ${state.step}`);\n}\n\nfunction listBits(mask) {\n  const out = [];\n  for (let i = 0; mask; i++, mask >>= 1) if (mask & 1) out.push(i);\n  return out;\n}\n\n// ---- src/matrix.js\n// Parsing of a matchup matrix pasted from a spreadsheet (Google Sheets / Excel).\n//\n// Accepted layout: our players in rows, their players in columns, optional\n// header row / column with names. Separators: tab, ';' or ','.\n// Cell formats: \"12\", \"12,5\", \"12±3\", \"12+-3\", \"12 (3)\"  -> mean [± sd].\n\nconst CELL = /^\\s*([+-]?\\d+(?:[.,]\\d+)?)\\s*(?:(?:±|\\+-|\\+\\/-)\\s*(\\d+(?:[.,]\\d+)?)|\\(\\s*(\\d+(?:[.,]\\d+)?)\\s*\\))?\\s*$/;\n\nfunction parseCell(text) {\n  if (text == null) return null;\n  const m = CELL.exec(String(text));\n  if (!m) return null;\n  const num = (s) => (s == null ? null : parseFloat(s.replace(',', '.')));\n  return { value: num(m[1]), sd: num(m[2] ?? m[3]) };\n}\n\nfunction splitLine(line, sep) {\n  return line.split(sep).map((c) => c.trim());\n}\n\nfunction parseMatrix(text) {\n  const lines = text.replace(/\\r/g, '').split('\\n').filter((l) => l.trim() !== '');\n  if (!lines.length) throw new Error('Matrice vide');\n  const sep = text.includes('\\t') ? '\\t' : text.includes(';') ? ';' : ',';\n  let grid = lines.map((l) => splitLine(l, sep));\n  const isNum = (c) => parseCell(c) !== null;\n\n  const headerRow = grid[0].slice(1).some((c) => c !== '' && !isNum(c));\n  let colNames = null;\n  if (headerRow) { colNames = grid[0]; grid = grid.slice(1); }\n  const headerCol = grid.some((r) => r[0] !== '' && !isNum(r[0]));\n  let rowNames = null;\n  if (headerCol) {\n    rowNames = grid.map((r) => r[0]);\n    grid = grid.map((r) => r.slice(1));\n    if (colNames) colNames = colNames.slice(1);\n  }\n  const nCols = Math.max(...grid.map((r) => r.length));\n  const cells = grid.map((r) => Array.from({ length: nCols }, (_, j) => parseCell(r[j])));\n  return {\n    rowNames: rowNames ?? cells.map((_, i) => `Nous ${i + 1}`),\n    colNames: (colNames ?? Array.from({ length: nCols }, (_, j) => `Eux ${j + 1}`)).slice(0, nCols),\n    cells,\n  };\n}\n\n// Converts a raw value to expected BP (0-20).\n//   scale.type === 'bp'     : value already in BP\n//   scale.type === 'linear' : [inMin, inMax] -> [outMin, outMax]\nfunction toBp(value, scale) {\n  if (value == null) return null;\n  let v = value;\n  if (scale?.type === 'linear') {\n    const { inMin, inMax, outMin, outMax } = scale;\n    v = outMin + ((value - inMin) / (inMax - inMin)) * (outMax - outMin);\n  }\n  return Math.max(0, Math.min(20, v));\n}\n\n// sd given in raw units is scaled with the same factor as the value.\nfunction sdToBp(sd, scale) {\n  if (sd == null) return null;\n  if (scale?.type === 'linear') return Math.abs(sd * (scale.outMax - scale.outMin) / (scale.inMax - scale.inMin));\n  return sd;\n}\n\n// Builds engine inputs mu[l][a][b], sd[l][a][b] from up to three parsed layout\n// matrices (missing layouts fall back to the first one) and a default sd.\nfunction buildModel(parsedByLayout, n, scale, defaultSd) {\n  const base = parsedByLayout.find((p) => p);\n  if (!base) throw new Error('Aucune matrice');\n  const missing = [];\n  const mu = [], sd = [];\n  for (let l = 0; l < 3; l++) {\n    const p = parsedByLayout[l] ?? base;\n    mu.push([]); sd.push([]);\n    for (let a = 0; a < n; a++) {\n      mu[l].push([]); sd[l].push([]);\n      for (let b = 0; b < n; b++) {\n        const c = p.cells[a]?.[b] ?? base.cells[a]?.[b] ?? null;\n        if (!c) missing.push({ layout: l, a, b });\n        mu[l][a].push(c ? toBp(c.value, scale) : 10);\n        sd[l][a].push(c && c.sd != null ? sdToBp(c.sd, scale) : defaultSd);\n      }\n    }\n  }\n  return { mu, sd, missing };\n}\n\n// ---- src/worker.js\n// Web Worker: holds the engine (and its memo) so the page stays responsive.\n\n\nlet workerEngine = null, workerModel = null;\n\nself.onmessage = (ev) => {\n  const msg = ev.data;\n  try {\n    if (msg.type === 'init') {\n      workerModel = msg.config;\n      workerEngine = createEngine(msg.config);\n    } else if (msg.type === 'advise') {\n      let last = 0;\n      const advice = advise(workerEngine, msg.state, workerModel.mu, workerModel.sd, (p) => {\n        if (p - last >= 0.02 || p === 1) { last = p; self.postMessage({ type: 'progress', id: msg.id, p }); }\n      });\n      self.postMessage({ type: 'advice', id: msg.id, advice });\n    }\n  } catch (e) {\n    self.postMessage({ type: 'error', id: msg.id, message: String(e?.message ?? e) });\n  }\n};\n";</script>
+<script type="module">
+// ---- src/rules.js
+// Rules data from the Games Workshop "Warhammer 40,000 Teams Event Companion"
+// (version 1.0, file eng_22-07_warhammer_40,000_teams_event_companion).
+// Kept as plain data so the solver never hard-codes team-size specifics.
+
+// Section 2 "Pairing System": modules used per team size.
+//   S = Initial Skirmish, M = Main Engagement, C = Champion System.
+const MODULES_BY_SIZE = {
+  3: ['M'],
+  4: ['M', 'C'],
+  5: ['S', 'M'],
+  6: ['S', 'M', 'C'],
+  7: ['S', 'S', 'M'],
+  8: ['S', 'S', 'M', 'C'],
+};
+
+// Section 14 "Team Scoring": a team must exceed its opponent by at least Y BP to win.
+const WIN_DIFFERENTIAL = { 3: 4, 4: 6, 5: 6, 6: 8, 7: 10, 8: 12 };
+
+// Section 14: VP difference -> Battle Points (player, opponent). Sum is always 20.
+const BP_TABLE = [
+  [5, 10], [10, 11], [15, 12], [20, 13], [25, 14], [30, 15],
+  [35, 16], [40, 17], [45, 18], [50, 19],
+];
+
+function vpDiffToBp(diff) {
+  const d = Math.abs(diff);
+  let bp = 20;
+  for (const [max, v] of BP_TABLE) if (d <= max) { bp = v; break; }
+  return diff >= 0 ? bp : 20 - bp;
+}
+
+// Team Points: win 3, draw 2, loss 1.
+const TEAM_POINTS = { win: 3, draw: 2, loss: 1 };
+
+const LAYOUTS = ['A', 'B', 'C'];
+
+// Refused attackers (Main Engagement step 8) and Champions use the layout
+// given by the round: round 1 -> A, round 2 -> B, round 3 -> C, repeating.
+function layoutForRound(round) {
+  return (((round - 1) % 3) + 3) % 3;
+}
+
+// Team BP thresholds on "our" total (both totals sum to 20 * n).
+//   win  : ours - theirs >= Y  <=> ours >= 10n + Y/2
+//   loss : theirs - ours >= Y  <=> ours <= 10n - Y/2
+function thresholds(n) {
+  const y = WIN_DIFFERENTIAL[n];
+  return { win: 10 * n + y / 2, loss: 10 * n - y / 2, total: 20 * n, differential: y };
+}
+
+// ---- src/matrixgame.js
+// Zero-sum matrix game solver.
+// The row player maximises, the column player minimises the row payoff.
+// Returns { x: row mixed strategy, y: column mixed strategy, v: game value }.
+
+const EPS = 1e-12;
+
+function solve2x2(a, b, c, d) {
+  // [[a, b], [c, d]]
+  // Pure saddle point check.
+  const r0 = Math.min(a, b), r1 = Math.min(c, d);
+  const c0 = Math.max(a, c), c1 = Math.max(b, d);
+  const maximin = Math.max(r0, r1);
+  const minimax = Math.min(c0, c1);
+  if (maximin >= minimax - EPS) {
+    const i = r0 >= r1 ? 0 : 1;
+    const j = c0 <= c1 ? 0 : 1;
+    return { x: i === 0 ? [1, 0] : [0, 1], y: j === 0 ? [1, 0] : [0, 1], v: maximin };
+  }
+  const den = a - b - c + d;
+  const p = (d - c) / den; // prob of row 0
+  const q = (d - b) / den; // prob of column 0
+  return { x: [p, 1 - p], y: [q, 1 - q], v: (a * d - b * c) / den };
+}
+
+// A: array of rows (m x n).
+function solveMatrixGame(A) {
+  const m = A.length, n = A[0].length;
+  if (m === 1 || n === 1) return solveDegenerate(A);
+  if (m === 2 && n === 2) return solve2x2(A[0][0], A[0][1], A[1][0], A[1][1]);
+
+  // Pure saddle point shortcut (very common in practice).
+  let maximin = -Infinity, bi = 0;
+  for (let i = 0; i < m; i++) {
+    let mn = Infinity;
+    for (let j = 0; j < n; j++) if (A[i][j] < mn) mn = A[i][j];
+    if (mn > maximin) { maximin = mn; bi = i; }
+  }
+  let minimax = Infinity, bj = 0;
+  for (let j = 0; j < n; j++) {
+    let mx = -Infinity;
+    for (let i = 0; i < m; i++) if (A[i][j] > mx) mx = A[i][j];
+    if (mx < minimax) { minimax = mx; bj = j; }
+  }
+  if (maximin >= minimax - EPS) {
+    const x = new Array(m).fill(0); x[bi] = 1;
+    const y = new Array(n).fill(0); y[bj] = 1;
+    return { x, y, v: maximin };
+  }
+  return simplex(A, m, n);
+}
+
+function solveDegenerate(A) {
+  const m = A.length, n = A[0].length;
+  if (m === 1) {
+    let j0 = 0;
+    for (let j = 1; j < n; j++) if (A[0][j] < A[0][j0]) j0 = j;
+    const y = new Array(n).fill(0); y[j0] = 1;
+    return { x: [1], y, v: A[0][j0] };
+  }
+  let i0 = 0;
+  for (let i = 1; i < m; i++) if (A[i][0] > A[i0][0]) i0 = i;
+  const x = new Array(m).fill(0); x[i0] = 1;
+  return { x, y: [1], v: A[i0][0] };
+}
+
+// Column player's LP on a strictly positive shifted matrix:
+//   maximise sum(y) s.t. A' y <= 1, y >= 0.  value = 1 / sum(y).
+// Row strategy is read from the dual (objective-row coefficients of slacks).
+function simplex(A, m, n) {
+  let min = Infinity;
+  for (let i = 0; i < m; i++) for (let j = 0; j < n; j++) if (A[i][j] < min) min = A[i][j];
+  const shift = 1 - min;
+  const W = n + m + 1; // columns: y (n), slacks (m), rhs
+  const T = new Float64Array((m + 1) * W);
+  for (let i = 0; i < m; i++) {
+    const r = i * W;
+    for (let j = 0; j < n; j++) T[r + j] = A[i][j] + shift;
+    T[r + n + i] = 1;
+    T[r + W - 1] = 1;
+  }
+  const obj = m * W;
+  for (let j = 0; j < n; j++) T[obj + j] = -1;
+  const basis = new Int32Array(m);
+  for (let i = 0; i < m; i++) basis[i] = n + i;
+
+  for (let iter = 0; iter < 10000; iter++) {
+    // Bland's rule: first improving column.
+    let pc = -1;
+    for (let j = 0; j < n + m; j++) if (T[obj + j] < -1e-12) { pc = j; break; }
+    if (pc < 0) break;
+    let pr = -1, best = Infinity;
+    for (let i = 0; i < m; i++) {
+      const a = T[i * W + pc];
+      if (a > 1e-12) {
+        const ratio = T[i * W + W - 1] / a;
+        if (ratio < best - 1e-12 || (Math.abs(ratio - best) <= 1e-12 && basis[i] < basis[pr])) {
+          best = ratio; pr = i;
+        }
+      }
+    }
+    if (pr < 0) break; // unbounded: cannot happen with positive matrix
+    const pv = T[pr * W + pc];
+    for (let k = 0; k < W; k++) T[pr * W + k] /= pv;
+    for (let i = 0; i <= m; i++) {
+      if (i === pr) continue;
+      const f = T[i * W + pc];
+      if (f !== 0) for (let k = 0; k < W; k++) T[i * W + k] -= f * T[pr * W + k];
+    }
+    basis[pr] = pc;
+  }
+  const sumY = T[obj + W - 1];
+  const vShift = 1 / sumY;
+  const y = new Array(n).fill(0);
+  for (let i = 0; i < m; i++) if (basis[i] < n) y[basis[i]] = T[i * W + W - 1] * vShift;
+  const x = new Array(m);
+  for (let i = 0; i < m; i++) x[i] = Math.max(0, T[obj + n + i]) * vShift;
+  return { x: normalise(x), y: normalise(y), v: vShift - shift };
+}
+
+function normalise(p) {
+  let s = 0;
+  for (const v of p) s += v;
+  return s > 0 ? p.map((v) => v / s) : p;
+}
+
+// ---- src/engine.js
+// Pairing decision engine.
+//
+// Model
+// -----
+// mu[l][a][b] : expected Battle Points (0-20) for OUR player a against THEIR
+//               player b on layout l (0 = A, 1 = B, 2 = C).
+// sd[l][a][b] : standard deviation of that BP result (uncertainty of the estimate
+//               plus dice). Games are assumed independent, so the team total is
+//               approximated by a normal distribution N(sum mu, sum sd^2).
+//
+// The pairing is a sequence of simultaneous secret choices (defender, attackers,
+// which attacker to accept). Every such step is solved as a zero-sum matrix game,
+// with backward induction over the whole pairing tree.
+//
+// Objective (maximised by us, minimised by the opponent):
+//   obj = (1 - marginWeight) * (P(win) + drawValue * P(draw))
+//       +      marginWeight  * (E[our BP] / total BP)
+// drawValue = 0.5, marginWeight = 0  <=>  maximise expected Team Points.
+//
+// Two layers:
+//  - "obj" layer: objective value only, memoised, used to find the equilibria;
+//  - "metrics" layer: follows the equilibria found by the obj layer and returns
+//    [obj, P(win), P(draw), P(loss), E[our BP]].
+//
+// Documented simplifications (see docs/MODEL.md):
+//  - in the look-ahead, a defender picks the layout with the best expected BP for
+//    its side (the live state always uses the layout actually declared);
+//  - the accumulated mean / variance are snapped to a small grid at the start of
+//    each non-final module so sub-trees can be shared (default 0.5 BP, 4 BP^2).
+
+
+
+const METRIC = { OBJ: 0, WIN: 1, DRAW: 2, LOSS: 3, BP: 4 };
+
+function bits(mask) {
+  const out = [];
+  for (let i = 0; mask; i++, mask >>= 1) if (mask & 1) out.push(i);
+  return out;
+}
+
+function pairs(list) {
+  const out = [];
+  for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) out.push([list[i], list[j]]);
+  return out;
+}
+
+// Standard normal CDF (Abramowitz & Stegun 7.1.26, |err| < 1.5e-7).
+function phi(z) {
+  const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z / 2);
+  return z >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+}
+
+function value2x2(a, b, c, d) {
+  const maximin = Math.max(Math.min(a, b), Math.min(c, d));
+  const minimax = Math.min(Math.max(a, c), Math.max(b, d));
+  if (maximin >= minimax - 1e-12) return maximin;
+  return (a * d - b * c) / (a - b - c + d);
+}
+
+function lowBit(mask) {
+  return 31 - Math.clz32(mask & -mask);
+}
+
+function createEngine(config) {
+  const n = config.n;
+  const modules = MODULES_BY_SIZE[n];
+  if (!modules) throw new Error(`Unsupported team size ${n} (3 to 8)`);
+  const th = thresholds(n);
+  const round = config.round ?? 1;
+  const fixedLayout = layoutForRound(round);
+  const drawValue = config.objective?.drawValue ?? 0.5;
+  const marginWeight = config.objective?.marginWeight ?? 0;
+  const qm = config.quantum?.mean ?? 0.5;
+  const qv = config.quantum?.variance ?? 4;
+  const mu = config.mu, sd = config.sd;
+
+  // Per role: layout used, mean and variance of the game (look-ahead model).
+  const ourDefLayout = new Int8Array(n * n), theirDefLayout = new Int8Array(n * n);
+  const OM = new Float64Array(n * n), OV = new Float64Array(n * n); // our defender game
+  const TM = new Float64Array(n * n), TV = new Float64Array(n * n); // their defender game
+  const FM = new Float64Array(n * n), FV = new Float64Array(n * n); // fixed-layout game
+  for (let a = 0; a < n; a++) {
+    for (let b = 0; b < n; b++) {
+      const k = a * n + b;
+      let best = 0, worst = 0;
+      for (let l = 1; l < 3; l++) {
+        if (mu[l][a][b] > mu[best][a][b]) best = l;
+        if (mu[l][a][b] < mu[worst][a][b]) worst = l;
+      }
+      ourDefLayout[k] = best; theirDefLayout[k] = worst;
+      OM[k] = mu[best][a][b]; OV[k] = sd[best][a][b] ** 2;
+      TM[k] = mu[worst][a][b]; TV[k] = sd[worst][a][b] ** 2;
+      FM[k] = mu[fixedLayout][a][b]; FV[k] = sd[fixedLayout][a][b] ** 2;
+    }
+  }
+
+  const winZ = th.win - 0.5, lossZ = th.loss + 0.5;
+
+  function terminal(M, V) {
+    const s = Math.sqrt(Math.max(V, 1e-4));
+    const pW = 1 - phi((winZ - M) / s);
+    const pL = phi((lossZ - M) / s);
+    const pD = Math.max(0, 1 - pW - pL);
+    const obj = (1 - marginWeight) * (pW + drawValue * pD) + marginWeight * (M / th.total);
+    return [obj, pW, pD, pL, M];
+  }
+
+  function terminalObj(M, V) {
+    const s = Math.sqrt(Math.max(V, 1e-4));
+    const pW = 1 - phi((winZ - M) / s);
+    const pL = phi((lossZ - M) / s);
+    return (1 - marginWeight) * (pW + drawValue * Math.max(0, 1 - pW - pL)) + marginWeight * (M / th.total);
+  }
+
+  const snapM = (M) => Math.round(M / qm) * qm;
+  const snapV = (V) => Math.round(V / qv) * qv;
+  // Numeric memo keys while they stay exact (always true with the default grid);
+  // string keys otherwise (e.g. very fine grids used in tests).
+  const mRange = Math.ceil(2 * 20 * n / qm) + 2, vRange = Math.ceil(n * 400 / qv) + 2;
+  const numericKeys = mRange * vRange * 8 * 65536 < Number.MAX_SAFE_INTEGER;
+  const keyOf = numericKeys
+    ? (remA, remB, mod, M, V) => (((Math.round(V / qv) * mRange + Math.round(M / qm)) * 8 + mod) * 256 + remB) * 256 + remA
+    : (remA, remB, mod, M, V) => `${remA},${remB},${mod},${Math.round(M / qm)},${Math.round(V / qv)}`;
+
+  const objMemo = new Map();
+  const metMemo = new Map();
+
+  // Next state after the step-5 choices (k: which of their attackers our defender
+  // plays, l: which of our attackers their defender plays).
+  function transition(remA, remB, mod, M, V, dA, dB, pa, pb, k, l) {
+    const g1 = dA * n + pb[k], g2 = pa[l] * n + dB;
+    M += OM[g1] + TM[g2];
+    V += OV[g1] + TV[g2];
+    let nA, nB;
+    if (modules[mod] === 'M') {
+      const g3 = pa[1 - l] * n + pb[1 - k];
+      M += FM[g3]; V += FV[g3];
+      nA = remA & ~(1 << dA) & ~(1 << pa[0]) & ~(1 << pa[1]);
+      nB = remB & ~(1 << dB) & ~(1 << pb[0]) & ~(1 << pb[1]);
+    } else {
+      nA = remA & ~(1 << dA) & ~(1 << pa[l]);
+      nB = remB & ~(1 << dB) & ~(1 << pb[k]);
+    }
+    mod++;
+    // Champion System: forced pairing of the last player of each team.
+    while (mod < modules.length && modules[mod] === 'C') {
+      const c = lowBit(nA) * n + lowBit(nB);
+      M += FM[c]; V += FV[c];
+      nA = 0; nB = 0; mod++;
+    }
+    return { remA: nA, remB: nB, mod, M, V, terminal: mod >= modules.length };
+  }
+
+  // ---------------------------------------------------------------- obj layer
+
+  function objModule(remA, remB, mod, M, V) {
+    while (mod < modules.length && modules[mod] === 'C') {
+      const c = lowBit(remA) * n + lowBit(remB);
+      M += FM[c]; V += FV[c]; remA = 0; remB = 0; mod++;
+    }
+    if (mod >= modules.length) return terminalObj(M, V);
+    M = snapM(M); V = snapV(V);
+    const key = keyOf(remA, remB, mod, M, V);
+    let v = objMemo.get(key);
+    if (v !== undefined) return v;
+    v = modules[mod] === 'M' ? finalModuleObj(remA, remB, M, V) : objDefenderStage(remA, remB, mod, M, V).eq.v;
+    objMemo.set(key, v);
+    return v;
+  }
+
+  function objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, k, l) {
+    const t = transition(remA, remB, mod, M, V, dA, dB, pa, pb, k, l);
+    return t.terminal ? terminalObj(t.M, t.V) : objModule(t.remA, t.remB, t.mod, t.M, t.V);
+  }
+
+  function objChooseStage(remA, remB, mod, M, V, dA, dB, pa, pb) {
+    const A = [
+      [objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, 0, 0), objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, 0, 1)],
+      [objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, 1, 0), objOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, 1, 1)],
+    ];
+    return { A, eq: solve2x2(A[0][0], A[0][1], A[1][0], A[1][1]) };
+  }
+
+  function objAttackerStage(remA, remB, mod, M, V, dA, dB) {
+    const rows = pairs(bits(remA & ~(1 << dA)));
+    const cols = pairs(bits(remB & ~(1 << dB)));
+    const A = rows.map((pa) => cols.map((pb) => objChooseStage(remA, remB, mod, M, V, dA, dB, pa, pb).eq.v));
+    return { rows, cols, A, eq: solveMatrixGame(A) };
+  }
+
+  function objDefenderStage(remA, remB, mod, M, V) {
+    const rows = bits(remA), cols = bits(remB);
+    const A = rows.map((dA) => cols.map((dB) => objAttackerStage(remA, remB, mod, M, V, dA, dB).eq.v));
+    return { rows, cols, A, eq: solveMatrixGame(A) };
+  }
+
+  // Fast path for the Main Engagement (always the last choice module): no
+  // allocation per leaf, no memo for terminal states. Same maths as the
+  // generic stages above.
+  function finalModuleObj(remA, remB, M, V) {
+    const LA = bits(remA), LB = bits(remB), r = LA.length;
+    const champ = r === 4;
+    const D = [];
+    for (let iA = 0; iA < r; iA++) {
+      const dA = LA[iA];
+      const oA = LA.filter((x) => x !== dA);
+      const PA = pairs(oA);
+      const row = [];
+      for (let iB = 0; iB < r; iB++) {
+        const dB = LB[iB];
+        const oB = LB.filter((x) => x !== dB);
+        const PB = pairs(oB);
+        const att = [];
+        for (const pa of PA) {
+          const cA = champ ? oA.find((x) => x !== pa[0] && x !== pa[1]) : -1;
+          const arow = [];
+          for (const pb of PB) {
+            let m0 = M, v0 = V;
+            if (champ) {
+              const cB = oB.find((x) => x !== pb[0] && x !== pb[1]);
+              m0 += FM[cA * n + cB]; v0 += FV[cA * n + cB];
+            }
+            const g1a = dA * n + pb[0], g1b = dA * n + pb[1];
+            const g2a = pa[0] * n + dB, g2b = pa[1] * n + dB;
+            // k = 0/1: our defender plays pb[k]; l = 0/1: their defender plays pa[l].
+            const o00 = terminalObj(m0 + OM[g1a] + TM[g2a] + FM[pa[1] * n + pb[1]], v0 + OV[g1a] + TV[g2a] + FV[pa[1] * n + pb[1]]);
+            const o01 = terminalObj(m0 + OM[g1a] + TM[g2b] + FM[pa[0] * n + pb[1]], v0 + OV[g1a] + TV[g2b] + FV[pa[0] * n + pb[1]]);
+            const o10 = terminalObj(m0 + OM[g1b] + TM[g2a] + FM[pa[1] * n + pb[0]], v0 + OV[g1b] + TV[g2a] + FV[pa[1] * n + pb[0]]);
+            const o11 = terminalObj(m0 + OM[g1b] + TM[g2b] + FM[pa[0] * n + pb[0]], v0 + OV[g1b] + TV[g2b] + FV[pa[0] * n + pb[0]]);
+            arow.push(value2x2(o00, o01, o10, o11));
+          }
+          att.push(arow);
+        }
+        row.push(solveMatrixGame(att).v);
+      }
+      D.push(row);
+    }
+    return solveMatrixGame(D).v;
+  }
+
+  // ------------------------------------------------------------ metrics layer
+
+  function mix(eq, cellFn) {
+    const out = [0, 0, 0, 0, 0];
+    for (let i = 0; i < eq.x.length; i++) {
+      if (eq.x[i] < 1e-9) continue;
+      for (let j = 0; j < eq.y.length; j++) {
+        const w = eq.x[i] * eq.y[j];
+        if (w < 1e-9) continue;
+        const c = cellFn(i, j);
+        for (let t = 0; t < 5; t++) out[t] += w * c[t];
+      }
+    }
+    return out;
+  }
+
+  function metModule(remA, remB, mod, M, V) {
+    while (mod < modules.length && modules[mod] === 'C') {
+      const c = lowBit(remA) * n + lowBit(remB);
+      M += FM[c]; V += FV[c]; remA = 0; remB = 0; mod++;
+    }
+    if (mod >= modules.length) return terminal(M, V);
+    M = snapM(M); V = snapV(V);
+    const key = keyOf(remA, remB, mod, M, V);
+    let v = metMemo.get(key);
+    if (v) return v;
+    const st = objDefenderStage(remA, remB, mod, M, V);
+    v = mix(st.eq, (i, j) => metAttacker(remA, remB, mod, M, V, st.rows[i], st.cols[j]));
+    v[0] = st.eq.v;
+    metMemo.set(key, v);
+    return v;
+  }
+
+  function metAttacker(remA, remB, mod, M, V, dA, dB) {
+    const st = objAttackerStage(remA, remB, mod, M, V, dA, dB);
+    const v = mix(st.eq, (i, j) => metChoose(remA, remB, mod, M, V, dA, dB, st.rows[i], st.cols[j]));
+    v[0] = st.eq.v;
+    return v;
+  }
+
+  function metChoose(remA, remB, mod, M, V, dA, dB, pa, pb) {
+    const st = objChooseStage(remA, remB, mod, M, V, dA, dB, pa, pb);
+    const v = mix(st.eq, (k, l) => metOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, k, l));
+    v[0] = st.eq.v;
+    return v;
+  }
+
+  function metOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, k, l) {
+    const t = transition(remA, remB, mod, M, V, dA, dB, pa, pb, k, l);
+    return t.terminal ? terminal(t.M, t.V) : metModule(t.remA, t.remB, t.mod, t.M, t.V);
+  }
+
+  return {
+    n, modules, thresholds: th, fixedLayout, round,
+    ourDefLayout: (a, b) => ourDefLayout[a * n + b],
+    theirDefLayout: (a, b) => theirDefLayout[a * n + b],
+    terminal,
+    transition,
+    snap: (M, V) => ({ M: snapM(M), V: snapV(V) }),
+    // Objective only (fast).
+    objModule, objDefenderStage, objAttackerStage, objChooseStage, objOutcome,
+    // Full metrics following the equilibrium.
+    metModule, metAttacker, metChoose, metOutcome,
+    stats: () => ({ objStates: objMemo.size, metStates: metMemo.size }),
+  };
+}
+
+// ---- src/pairing.js
+// Live pairing state machine (Teams Event Companion, section 2 "Pairing System").
+// Pure functions: every transition returns a new state.
+//
+// Steps inside Initial Skirmish (S) / Main Engagement (M):
+//   'defenders' -> 'attackers' -> 'choices' -> 'layouts'
+// Champion System (C) is resolved automatically.
+
+
+
+function initialState(n, round = 1) {
+  const modules = MODULES_BY_SIZE[n];
+  if (!modules) throw new Error(`Unsupported team size ${n}`);
+  const full = (1 << n) - 1;
+  return resolveForced({ n, round, modules, mod: 0, remA: full, remB: full, games: [], step: 'defenders' });
+}
+
+// Resolves Champion modules and end of pairing.
+function resolveForced(s) {
+  s = { ...s };
+  while (s.mod < s.modules.length && s.modules[s.mod] === 'C') {
+    const a = bits(s.remA)[0], b = bits(s.remB)[0];
+    s.games = [...s.games, { a, b, layout: layoutForRound(s.round), role: 'champion', module: s.mod }];
+    s.remA = 0; s.remB = 0; s.mod++;
+  }
+  if (s.mod >= s.modules.length) s.step = 'done';
+  return s;
+}
+
+function has(mask, i) {
+  return (mask >> i) & 1;
+}
+
+function setDefenders(s, dA, dB) {
+  if (s.step !== 'defenders') throw new Error('Not at defender step');
+  if (!has(s.remA, dA) || !has(s.remB, dB)) throw new Error('Defender not available');
+  return { ...s, dA, dB, step: 'attackers' };
+}
+
+// pa: our two attackers (against their defender), pb: their two attackers.
+function setAttackers(s, pa, pb) {
+  if (s.step !== 'attackers') throw new Error('Not at attacker step');
+  const okA = pa.length === 2 && pa[0] !== pa[1] && pa.every((x) => x !== s.dA && has(s.remA, x));
+  const okB = pb.length === 2 && pb[0] !== pb[1] && pb.every((x) => x !== s.dB && has(s.remB, x));
+  if (!okA || !okB) throw new Error('Invalid attackers');
+  return { ...s, pa: [...pa].sort((x, y) => x - y), pb: [...pb].sort((x, y) => x - y), step: 'choices' };
+}
+
+// k: index in pb of the attacker OUR defender accepts.
+// l: index in pa of the attacker THEIR defender accepts.
+function setChoices(s, k, l) {
+  if (s.step !== 'choices') throw new Error('Not at choice step');
+  if (![0, 1].includes(k) || ![0, 1].includes(l)) throw new Error('Invalid choice');
+  return { ...s, k, l, step: 'layouts' };
+}
+
+// Layout declared by each defender for its own game (0 = A, 1 = B, 2 = C).
+function setLayouts(s, ourLayout, theirLayout) {
+  if (s.step !== 'layouts') throw new Error('Not at layout step');
+  const { dA, dB, pa, pb, k, l } = s;
+  const type = s.modules[s.mod];
+  const games = [
+    ...s.games,
+    { a: dA, b: pb[k], layout: ourLayout, role: 'ourDefender', module: s.mod },
+    { a: pa[l], b: dB, layout: theirLayout, role: 'theirDefender', module: s.mod },
+  ];
+  let remA, remB;
+  if (type === 'M') {
+    games.push({ a: pa[1 - l], b: pb[1 - k], layout: layoutForRound(s.round), role: 'refused', module: s.mod });
+    remA = s.remA & ~(1 << dA) & ~(1 << pa[0]) & ~(1 << pa[1]);
+    remB = s.remB & ~(1 << dB) & ~(1 << pb[0]) & ~(1 << pb[1]);
+  } else {
+    remA = s.remA & ~(1 << dA) & ~(1 << pa[l]);
+    remB = s.remB & ~(1 << dB) & ~(1 << pb[k]);
+  }
+  const next = { n: s.n, round: s.round, modules: s.modules, mod: s.mod + 1, remA, remB, games, step: 'defenders' };
+  return resolveForced(next);
+}
+
+// Accumulated mean / variance of our BP from the games already fixed.
+function accumulated(s, mu, sd) {
+  let M = 0, V = 0;
+  for (const g of s.games) {
+    M += mu[g.layout][g.a][g.b];
+    V += sd[g.layout][g.a][g.b] ** 2;
+  }
+  return { M, V };
+}
+
+// ---- src/advisor.js
+// Turns engine results into decision support for the current pairing step.
+
+
+
+function metricsOf(v) {
+  const [obj, win, draw, loss, bp] = v;
+  return { obj, win, draw, loss, bp, tp: 3 * win + 2 * draw + loss };
+}
+
+function weighted(list) {
+  const out = [0, 0, 0, 0, 0];
+  for (const [w, v] of list) for (let t = 0; t < 5; t++) out[t] += w * v[t];
+  return out;
+}
+
+// Generic analysis of a simultaneous step given its objective matrix A and a
+// function returning full metrics for a cell.
+function analyse(A, rowLabels, colLabels, cellMetrics) {
+  const eq = solveMatrixGame(A);
+  const m = A.length, nc = A[0].length;
+  const cache = new Map();
+  const cell = (i, j) => {
+    const k = i * nc + j;
+    if (!cache.has(k)) cache.set(k, cellMetrics(i, j));
+    return cache.get(k);
+  };
+  const rows = [];
+  for (let i = 0; i < m; i++) {
+    let vsEq = 0, worst = Infinity, best = -Infinity, worstCol = 0;
+    for (let j = 0; j < nc; j++) {
+      vsEq += eq.y[j] * A[i][j];
+      if (A[i][j] < worst) { worst = A[i][j]; worstCol = j; }
+      if (A[i][j] > best) best = A[i][j];
+    }
+    const met = weighted(eq.y.map((y, j) => [y, y > 1e-9 ? cell(i, j) : [0, 0, 0, 0, 0]]));
+    met[0] = vsEq;
+    rows.push({ index: i, label: rowLabels[i], prob: eq.x[i], vsEq, worst, best, worstCol, metrics: metricsOf(met) });
+  }
+  const cols = [];
+  for (let j = 0; j < nc; j++) {
+    let vsEq = 0, best = -Infinity, bestRow = 0;
+    for (let i = 0; i < m; i++) {
+      vsEq += eq.x[i] * A[i][j];
+      if (A[i][j] > best) { best = A[i][j]; bestRow = i; }
+    }
+    cols.push({ index: j, label: colLabels[j], prob: eq.y[j], vsEq, bestResponse: bestRow, bestResponseValue: best });
+  }
+  const projection = weighted(rows.map((r) => [r.prob, [r.metrics.obj, r.metrics.win, r.metrics.draw, r.metrics.loss, r.metrics.bp]]));
+  projection[0] = eq.v;
+  return { A, eq, value: eq.v, rows, cols, projection: metricsOf(projection) };
+}
+
+function advise(engine, state, mu, sd, onProgress) {
+  const acc = accumulated(state, mu, sd);
+  if (state.step === 'done') {
+    return { step: 'done', projection: metricsOf(engine.terminal(acc.M, acc.V)), accumulated: acc };
+  }
+  const { M, V } = engine.snap(acc.M, acc.V);
+  const { remA, remB, mod } = state;
+
+  if (state.step === 'defenders') {
+    const rows = listBits(remA), cols = listBits(remB);
+    const total = rows.length * cols.length;
+    let done = 0;
+    const A = rows.map((dA) => cols.map((dB) => {
+      const v = engine.objAttackerStage(remA, remB, mod, M, V, dA, dB).eq.v;
+      done++;
+      if (onProgress) onProgress(done / total);
+      return v;
+    }));
+    const res = analyse(A, rows, cols, (i, j) => engine.metAttacker(remA, remB, mod, M, V, rows[i], cols[j]));
+    return { step: 'defenders', accumulated: acc, ...res };
+  }
+
+  const { dA, dB } = state;
+  if (state.step === 'attackers') {
+    const st = engine.objAttackerStage(remA, remB, mod, M, V, dA, dB);
+    const res = analyse(st.A, st.rows, st.cols, (i, j) => engine.metChoose(remA, remB, mod, M, V, dA, dB, st.rows[i], st.cols[j]));
+    return { step: 'attackers', accumulated: acc, ...res };
+  }
+
+  const { pa, pb } = state;
+  if (state.step === 'choices') {
+    const st = engine.objChooseStage(remA, remB, mod, M, V, dA, dB, pa, pb);
+    // rows: k (their attacker our defender plays), cols: l (our attacker their defender plays)
+    const res = analyse(st.A, [pb[0], pb[1]], [pa[0], pa[1]], (k, l) => engine.metOutcome(remA, remB, mod, M, V, dA, dB, pa, pb, k, l));
+    return { step: 'choices', accumulated: acc, ...res };
+  }
+
+  if (state.step === 'layouts') {
+    const { k, l } = state;
+    const ourGame = { a: dA, b: pb[k] }, theirGame = { a: pa[l], b: dB };
+    const theirAssumed = engine.theirDefLayout(theirGame.a, theirGame.b);
+    const options = [0, 1, 2].map((layout) => {
+      const next = setLayouts(state, layout, theirAssumed);
+      const nAcc = accumulated(next, mu, sd);
+      const met = next.step === 'done'
+        ? engine.terminal(nAcc.M, nAcc.V)
+        : engine.metModule(next.remA, next.remB, next.mod, nAcc.M, nAcc.V);
+      return { layout, gameMean: mu[layout][ourGame.a][ourGame.b], gameSd: sd[layout][ourGame.a][ourGame.b], metrics: metricsOf(met) };
+    });
+    let best = 0;
+    for (let i = 1; i < 3; i++) if (options[i].metrics.obj > options[best].metrics.obj + 1e-12) best = i;
+    return {
+      step: 'layouts', accumulated: acc, ourGame, theirGame, theirAssumed, options, best,
+      theirOptions: [0, 1, 2].map((layout) => ({ layout, gameMean: mu[layout][theirGame.a][theirGame.b] })),
+      projection: options[best].metrics,
+    };
+  }
+  throw new Error(`Unknown step ${state.step}`);
+}
+
+function listBits(mask) {
+  const out = [];
+  for (let i = 0; mask; i++, mask >>= 1) if (mask & 1) out.push(i);
+  return out;
+}
+
+// ---- src/matrix.js
+// Parsing of a matchup matrix pasted from a spreadsheet (Google Sheets / Excel).
+//
+// Accepted layout: our players in rows, their players in columns, optional
+// header row / column with names. Separators: tab, ';' or ','.
+// Cell formats: "12", "12,5", "12±3", "12+-3", "12 (3)"  -> mean [± sd].
+
+const CELL = /^\s*([+-]?\d+(?:[.,]\d+)?)\s*(?:(?:±|\+-|\+\/-)\s*(\d+(?:[.,]\d+)?)|\(\s*(\d+(?:[.,]\d+)?)\s*\))?\s*$/;
+
+function parseCell(text) {
+  if (text == null) return null;
+  const m = CELL.exec(String(text));
+  if (!m) return null;
+  const num = (s) => (s == null ? null : parseFloat(s.replace(',', '.')));
+  return { value: num(m[1]), sd: num(m[2] ?? m[3]) };
+}
+
+function splitLine(line, sep) {
+  return line.split(sep).map((c) => c.trim());
+}
+
+function parseMatrix(text) {
+  const lines = text.replace(/\r/g, '').split('\n').filter((l) => l.trim() !== '');
+  if (!lines.length) throw new Error('Matrice vide');
+  const sep = text.includes('\t') ? '\t' : text.includes(';') ? ';' : ',';
+  let grid = lines.map((l) => splitLine(l, sep));
+  const isNum = (c) => parseCell(c) !== null;
+
+  const headerRow = grid[0].slice(1).some((c) => c !== '' && !isNum(c));
+  let colNames = null;
+  if (headerRow) { colNames = grid[0]; grid = grid.slice(1); }
+  const headerCol = grid.some((r) => r[0] !== '' && !isNum(r[0]));
+  let rowNames = null;
+  if (headerCol) {
+    rowNames = grid.map((r) => r[0]);
+    grid = grid.map((r) => r.slice(1));
+    if (colNames) colNames = colNames.slice(1);
+  }
+  const nCols = Math.max(...grid.map((r) => r.length));
+  const cells = grid.map((r) => Array.from({ length: nCols }, (_, j) => parseCell(r[j])));
+  return {
+    rowNames: rowNames ?? cells.map((_, i) => `Nous ${i + 1}`),
+    colNames: (colNames ?? Array.from({ length: nCols }, (_, j) => `Eux ${j + 1}`)).slice(0, nCols),
+    cells,
+  };
+}
+
+// Converts a raw value to expected BP (0-20).
+//   scale.type === 'bp'     : value already in BP
+//   scale.type === 'linear' : [inMin, inMax] -> [outMin, outMax]
+function toBp(value, scale) {
+  if (value == null) return null;
+  let v = value;
+  if (scale?.type === 'linear') {
+    const { inMin, inMax, outMin, outMax } = scale;
+    v = outMin + ((value - inMin) / (inMax - inMin)) * (outMax - outMin);
+  }
+  return Math.max(0, Math.min(20, v));
+}
+
+// sd given in raw units is scaled with the same factor as the value.
+function sdToBp(sd, scale) {
+  if (sd == null) return null;
+  if (scale?.type === 'linear') return Math.abs(sd * (scale.outMax - scale.outMin) / (scale.inMax - scale.inMin));
+  return sd;
+}
+
+// Builds engine inputs mu[l][a][b], sd[l][a][b] from up to three parsed layout
+// matrices (missing layouts fall back to the first one) and a default sd.
+function buildModel(parsedByLayout, n, scale, defaultSd) {
+  const base = parsedByLayout.find((p) => p);
+  if (!base) throw new Error('Aucune matrice');
+  const missing = [];
+  const mu = [], sd = [];
+  for (let l = 0; l < 3; l++) {
+    const p = parsedByLayout[l] ?? base;
+    mu.push([]); sd.push([]);
+    for (let a = 0; a < n; a++) {
+      mu[l].push([]); sd[l].push([]);
+      for (let b = 0; b < n; b++) {
+        const c = p.cells[a]?.[b] ?? base.cells[a]?.[b] ?? null;
+        if (!c) missing.push({ layout: l, a, b });
+        mu[l][a].push(c ? toBp(c.value, scale) : 10);
+        sd[l][a].push(c && c.sd != null ? sdToBp(c.sd, scale) : defaultSd);
+      }
+    }
+  }
+  return { mu, sd, missing };
+}
+
+// ---- src/ui.js
+// User interface (vanilla JS, no framework).
+
+
+
+
+
+const STORAGE_KEY = 'w40k-teams-pairing/v1';
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pct = (x) => `${Math.round(x * 100)} %`;
+const score = (x) => (x * 100).toFixed(1);
+const signed = (x) => (x >= 0 ? '+' : '−') + Math.abs(x * 100).toFixed(1);
+
+const MODULE_NAMES = { S: 'Initial Skirmish', M: 'Main Engagement', C: 'Champion' };
+const STEP_NAMES = {
+  defenders: 'Défenseurs',
+  attackers: 'Attaquants',
+  choices: 'Attaquant retenu',
+  layouts: 'Layouts',
+};
+const ROLE_NAMES = { ourDefender: 'Notre défenseur', theirDefender: 'Leur défenseur', refused: 'Attaquants refusés', champion: 'Champions' };
+
+// ------------------------------------------------------------------ config
+
+const EX_US = ['Space Marines', 'Aeldari', 'Necrons', "T'au Empire", 'Death Guard', 'Astra Militarum', 'Adepta Sororitas', 'Chaos Knights'];
+const EX_THEM = ['Orks', 'Tyranids', 'Adeptus Custodes', 'Drukhari', 'Grey Knights', 'World Eaters', 'Thousand Sons', 'Imperial Knights'];
+
+function exampleConfig(n = 6) {
+  let seed = 17;
+  const r = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const base = Array.from({ length: n }, () => Array.from({ length: n }, () => Math.round(4 + r() * 12)));
+  const grids = [0, 1, 2].map((l) => base.map((row) => row.map((v) => {
+    const x = l === 0 ? v : Math.max(0, Math.min(20, v + Math.round((r() - 0.5) * 6)));
+    return String(x);
+  })));
+  grids[0][0][1] += '±6';
+  grids[0][2][3] += '±2';
+  return {
+    version: 1, example: true, n, round: 1,
+    us: EX_US.slice(0, n), them: EX_THEM.slice(0, n),
+    grids, sameLayouts: false, defaultSd: 4,
+    scale: { type: 'bp', inMin: -2, inMax: 2, outMin: 4, outMax: 16 },
+    objective: { marginWeight: 0, drawValue: 0.5 },
+    precision: 'standard',
+  };
+}
+
+function resize(c, n) {
+  const fit = (arr, fill) => Array.from({ length: n }, (_, i) => arr[i] ?? fill(i));
+  c.us = fit(c.us, (i) => `Nous ${i + 1}`);
+  c.them = fit(c.them, (i) => `Eux ${i + 1}`);
+  c.grids = c.grids.map((g) => fit(g, () => []).map((row) => fit(row, () => '10')));
+  c.n = n;
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data?.cfg?.grids || !MODULES_BY_SIZE[data.cfg.n]) return null;
+    return data;
+  } catch { return null; }
+}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ cfg, live })); } catch { /* storage unavailable */ }
+}
+
+const saved = load();
+let cfg = saved?.cfg ?? exampleConfig(6);
+let live = saved?.live ?? { history: [], state: initialState(cfg.n, cfg.round) };
+if (live.state.n !== cfg.n) live = { history: [], state: initialState(cfg.n, cfg.round) };
+let tab = 'pairing';
+let editLayout = 0;
+
+const us = (i) => cfg.us[i] || `Nous ${i + 1}`;
+const them = (j) => cfg.them[j] || `Eux ${j + 1}`;
+const usPair = (p) => `${us(p[0])} + ${us(p[1])}`;
+const themPair = (p) => `${them(p[0])} + ${them(p[1])}`;
+
+function currentModel() {
+  const parsed = [0, 1, 2].map((l) => ({
+    cells: (cfg.sameLayouts ? cfg.grids[0] : cfg.grids[l]).map((row) => row.map((v) => parseCell(v))),
+  }));
+  return buildModel(parsed, cfg.n, cfg.scale, Number(cfg.defaultSd) || 4);
+}
+
+function engineConfig() {
+  const m = currentModel();
+  return {
+    n: cfg.n, round: cfg.round, mu: m.mu, sd: m.sd,
+    objective: { marginWeight: Number(cfg.objective.marginWeight), drawValue: Number(cfg.objective.drawValue) },
+    quantum: cfg.precision === 'fast' ? { mean: 1, variance: 8 } : { mean: 0.5, variance: 4 },
+    missing: m.missing.length,
+  };
+}
+
+function resetPairing() {
+  live = { history: [], state: initialState(cfg.n, cfg.round) };
+  save();
+}
+
+// ------------------------------------------------------------- computation
+
+let advice = null, adviceKey = null, adviceError = null, computing = false, progress = 0;
+let worker = null, workerKey = null, workerBusy = false, pending = null, useSync = false;
+let syncEngine = null, syncKey = null, reqId = 0;
+
+function makeWorker() {
+  if (window.__CORE_SOURCE__) {
+    const url = URL.createObjectURL(new Blob([window.__CORE_SOURCE__], { type: 'text/javascript' }));
+    return new Worker(url);
+  }
+  return new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+}
+
+function ensureAdvice() {
+  const ec = engineConfig();
+  const eKey = JSON.stringify(ec);
+  const key = eKey + JSON.stringify(live.state);
+  if (key === adviceKey) return;
+  adviceKey = key; advice = null; adviceError = null; computing = true; progress = 0;
+  compute(eKey, ec, live.state, key);
+}
+
+function compute(eKey, ec, state, key) {
+  const id = ++reqId;
+  pending = { id, key };
+  if (!useSync) {
+    try {
+      if (!worker || workerKey !== eKey || workerBusy) {
+        if (worker) worker.terminate();
+        worker = makeWorker();
+        workerKey = eKey;
+        worker.onmessage = (e) => onWorker(e.data);
+        worker.onerror = (e) => {
+          e.preventDefault?.();
+          useSync = true; worker?.terminate(); worker = null; workerBusy = false;
+          compute(eKey, ec, state, key);
+        };
+        worker.postMessage({ type: 'init', config: ec });
+      }
+      workerBusy = true;
+      worker.postMessage({ type: 'advise', id, state });
+      return;
+    } catch {
+      useSync = true;
+    }
+  }
+  setTimeout(() => {
+    if (pending?.id !== id) return;
+    try {
+      if (syncKey !== eKey) { syncEngine = createEngine(ec); syncKey = eKey; }
+      finish(key, advise(syncEngine, state, ec.mu, ec.sd), null);
+    } catch (err) { finish(key, null, String(err?.message ?? err)); }
+  }, 30);
+}
+
+function onWorker(msg) {
+  if (!pending || msg.id !== pending.id) return;
+  if (msg.type === 'progress') {
+    progress = msg.p;
+    const bar = $('#progress-bar');
+    if (bar) bar.style.width = `${Math.round(progress * 100)}%`;
+    return;
+  }
+  workerBusy = false;
+  finish(pending.key, msg.type === 'advice' ? msg.advice : null, msg.type === 'error' ? msg.message : null);
+}
+
+function finish(key, adv, err) {
+  if (key !== adviceKey) return;
+  computing = false;
+  advice = adv; adviceError = err;
+  if (tab === 'pairing') render();
+}
+
+// -------------------------------------------------------------- rendering
+
+function render() {
+  $$('nav.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+  const app = $('#app');
+  if (tab === 'pairing') { ensureAdvice(); app.innerHTML = pairingView(); bindPairing(); }
+  else if (tab === 'matrix') { app.innerHTML = matrixView(); bindMatrix(); }
+  else { app.innerHTML = methodView(); }
+}
+
+function vdlBar(m) {
+  const w = m.win * 100, d = m.draw * 100, l = m.loss * 100;
+  const lab = (x, t) => (x >= 12 ? `${t} ${Math.round(x)} %` : x >= 6 ? `${Math.round(x)}` : '');
+  return `<div class="vdl" role="img" aria-label="Victoire ${Math.round(w)} %, nul ${Math.round(d)} %, défaite ${Math.round(l)} %">
+    <div class="w" style="width:${w}%">${lab(w, 'V')}</div><div class="d" style="width:${d}%">${lab(d, 'N')}</div><div class="l" style="width:${l}%">${lab(l, 'D')}</div></div>`;
+}
+
+function miniBar(m) {
+  return `<span class="minibar" title="V ${pct(m.win)} · N ${pct(m.draw)} · D ${pct(m.loss)}"><i class="w" style="width:${m.win * 100}%"></i><i class="d" style="width:${m.draw * 100}%"></i><i class="l" style="width:${m.loss * 100}%"></i></span>`;
+}
+
+function projectionPanel() {
+  const th = thresholds(cfg.n);
+  const p = advice?.projection;
+  const body = p ? `
+    ${vdlBar(p)}
+    <div class="bigline"><span class="big num">${score(p.obj)}</span><span class="muted">score objectif (sur 100)</span></div>
+    <dl class="kv">
+      <dt>Victoire / nul / défaite</dt><dd>${pct(p.win)} / ${pct(p.draw)} / ${pct(p.loss)}</dd>
+      <dt>BP attendus</dt><dd>${p.bp.toFixed(1)} – ${(th.total - p.bp).toFixed(1)}</dd>
+      <dt>Points d'équipe attendus</dt><dd>${p.tp.toFixed(2)}</dd>
+      <dt>Seuil de victoire</dt><dd>≥ ${th.win} BP (écart ${th.differential})</dd>
+    </dl>
+    <p class="note">Projection si les deux équipes jouent au mieux à partir d'ici.</p>` : `<p class="muted">${computing ? 'Calcul en cours…' : '—'}</p>`;
+  return `<section class="panel proj" aria-live="polite"><h3>Projection du match</h3>${body}</section>`;
+}
+
+function timeline() {
+  const s = live.state;
+  const items = [];
+  s.modules.forEach((m, i) => {
+    if (m === 'C') {
+      items.push(`<li class="${s.mod > i || s.step === 'done' ? 'past' : ''}">Champion</li>`);
+      return;
+    }
+    for (const step of ['defenders', 'attackers', 'choices', 'layouts']) {
+      const cls = i < s.mod || s.step === 'done' ? 'past' : i === s.mod && s.step === step ? 'now' : '';
+      const past = i === s.mod && ['defenders', 'attackers', 'choices', 'layouts'].indexOf(step) < ['defenders', 'attackers', 'choices', 'layouts'].indexOf(s.step);
+      items.push(`<li class="${past ? 'past' : cls}">${esc(MODULE_NAMES[m])} · ${STEP_NAMES[step]}</li>`);
+    }
+  });
+  return `<ol class="timeline">${items.join('')}</ol>`;
+}
+
+function gamesList() {
+  const m = currentModel();
+  const s = live.state;
+  if (!s.games.length) return '<p class="muted">Aucune partie fixée pour l\'instant.</p>';
+  return `<ul class="games">${s.games.map((g) => `
+    <li><span>${esc(us(g.a))} <span class="muted">vs</span> ${esc(them(g.b))}</span>
+      <span class="num">${m.mu[g.layout][g.a][g.b].toFixed(1)}±${m.sd[g.layout][g.a][g.b].toFixed(0)}</span>
+      <span class="role">${ROLE_NAMES[g.role]} · layout ${LAYOUTS[g.layout]}</span><span></span></li>`).join('')}</ul>`;
+}
+
+function pairingView() {
+  const s = live.state;
+  const ec = engineConfig();
+  const main = computing
+    ? `<section class="panel"><h2>Calcul des recommandations…</h2><div class="progress"><i id="progress-bar" style="width:${Math.round(progress * 100)}%"></i></div>
+       <p class="note">${cfg.n === 8 && s.mod === 0 && s.step === 'defenders' ? 'À 8 joueurs, le premier calcul explore tout l\'arbre de pairing (15 à 40 s). Les étapes suivantes seront instantanées.' : 'Quelques instants.'}</p></section>`
+    : adviceError ? `<section class="panel"><h2>Erreur de calcul</h2><p class="warn">${esc(adviceError)}</p></section>`
+      : stepView();
+  return `
+  <div class="grid-2">
+    <div class="stack">
+      <section class="panel">
+        <div class="row" style="justify-content:space-between">
+          <h2>Ronde ${cfg.round} · ${cfg.n} joueurs</h2>
+          <div class="row">
+            <button class="btn small" id="undo" ${live.history.length ? '' : 'disabled'}>Annuler la dernière étape</button>
+            <button class="btn small" id="restart">Recommencer le pairing</button>
+          </div>
+        </div>
+        ${timeline()}
+        ${cfg.example ? '<p class="note">Données d\'exemple. Remplacez-les dans l\'onglet Matrice.</p>' : ''}
+        ${ec.missing ? `<p class="warn">${ec.missing} case(s) de matrice vide(s) ou illisible(s), comptée(s) à 10 BP.</p>` : ''}
+      </section>
+      ${main}
+    </div>
+    <aside class="stack">
+      ${projectionPanel()}
+      <section class="panel"><h3>Parties fixées</h3>${gamesList()}</section>
+    </aside>
+  </div>`;
+}
+
+function chips(r, adv, best) {
+  if (r.prob > 0.005) return `<span class="chip best">à jouer ${pct(r.prob)}</span>`;
+  if (r.vsEq >= best - 0.005) return '<span class="chip eq">équivalent</span>';
+  if (r.vsEq < best - 0.03) return '<span class="chip bad">à éviter</span>';
+  return '';
+}
+
+function optionsTable(adv, rowLabel, colLabel) {
+  const best = Math.max(...adv.rows.map((r) => r.vsEq));
+  const sorted = [...adv.rows].sort((a, b) => b.vsEq - a.vsEq);
+  return `<div class="tablewrap"><table>
+    <thead><tr><th>Notre option</th><th></th><th class="num" title="Score si l'adversaire joue sa meilleure stratégie">Score</th><th class="num">Écart</th>
+      <th class="num" title="Score si l'adversaire devine notre choix et contre au mieux">Pire cas</th><th>Contré par</th><th class="num">Meilleur cas</th><th>V / N / D</th><th class="num">BP</th></tr></thead>
+    <tbody>${sorted.map((r) => `<tr class="${r.prob > 0.005 ? 'picked' : ''}">
+      <td>${esc(rowLabel(r.label))}</td><td>${chips(r, adv, best)}</td>
+      <td class="num">${score(r.vsEq)}</td><td class="num">${signed(r.vsEq - best)}</td>
+      <td class="num">${score(r.worst)}</td><td class="muted">${esc(colLabel(adv.cols[r.worstCol].label))}</td>
+      <td class="num">${score(r.best)}</td><td>${miniBar(r.metrics)}</td><td class="num">${r.metrics.bp.toFixed(1)}</td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function opponentBlock(adv, rowLabel, colLabel) {
+  const mix = adv.cols.filter((c) => c.prob > 0.005).sort((a, b) => b.prob - a.prob);
+  const opts = adv.cols.map((c, j) => `<option value="${j}">${esc(colLabel(c.label))}</option>`).join('');
+  return `<div class="field"><span>Côté adversaire</span>
+    <p>Leur meilleure stratégie : ${mix.map((c) => `<strong>${esc(colLabel(c.label))}</strong> (${pct(c.prob)})`).join(', ')}.</p>
+    <div class="row"><label class="field"><span>Si vous pensez qu'ils vont jouer</span><select class="inp" id="predict">${opts}</select></label>
+    <p id="predict-out" class="note"></p></div></div>`;
+}
+
+function heatmap(adv, rowLabel, colLabel) {
+  const cell = (v) => {
+    const d = v - adv.value;
+    const k = Math.min(1, Math.abs(d) / 0.15) * 55;
+    const col = d >= 0 ? 'var(--good)' : 'var(--bad)';
+    return `<td style="background:color-mix(in srgb, ${col} ${k.toFixed(0)}%, var(--surface))">${score(v)}</td>`;
+  };
+  return `<details><summary>Matrice complète (score pour chaque combinaison de choix)</summary>
+    <div class="tablewrap"><table class="heat"><thead><tr><th></th>${adv.cols.map((c) => `<th class="col">${esc(colLabel(c.label))}</th>`).join('')}</tr></thead>
+    <tbody>${adv.A.map((row, i) => `<tr><th>${esc(rowLabel(adv.rows[i].label))}</th>${row.map(cell).join('')}</tr>`).join('')}</tbody></table></div>
+    <p class="note">Lignes : nos options. Colonnes : leurs options. Vert : mieux que la valeur d'équilibre (${score(adv.value)}). Rouge : moins bien.</p></details>`;
+}
+
+function recommendation(adv, rowLabel, verb) {
+  const mix = adv.rows.filter((r) => r.prob > 0.005).sort((a, b) => b.prob - a.prob);
+  const best = Math.max(...adv.rows.map((r) => r.vsEq));
+  const eqs = adv.rows.filter((r) => r.prob <= 0.005 && r.vsEq >= best - 0.005);
+  let txt;
+  if (mix.length === 1) {
+    txt = `<p>${verb} <strong>${esc(rowLabel(mix[0].label))}</strong>.</p>`;
+  } else {
+    txt = `<p>${verb} en variant : ${mix.map((r) => `<strong>${esc(rowLabel(r.label))}</strong> ${pct(r.prob)}`).join(', ')}.</p>
+      <p class="note">Aucun choix fixe n'est sûr ici : un choix prévisible se fait contrer. Tirez au sort selon ces proportions.</p>
+      <div class="row"><button class="btn small" id="draw">Tirer au sort</button><span id="draw-out"></span></div>`;
+  }
+  if (eqs.length) txt += `<p class="note">Presque aussi bon (moins de 0,5 point d'écart) : ${eqs.map((r) => esc(rowLabel(r.label))).join(', ')}.</p>`;
+  return `<div class="reco">${txt}</div>`;
+}
+
+function select(id, options, selected) {
+  return `<select class="inp" id="${id}">${options.map(([v, t]) => `<option value="${esc(v)}" ${String(v) === String(selected) ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
+}
+
+function topIndex(list) {
+  let b = 0;
+  list.forEach((x, i) => { if (x.prob > list[b].prob) b = i; });
+  return b;
+}
+
+function stepView() {
+  const s = live.state, adv = advice;
+  if (!adv) return '';
+  const mod = MODULE_NAMES[s.modules[s.mod]] ?? '';
+  if (s.step === 'done') {
+    return `<section class="panel"><h2>Pairing terminé</h2>
+      <p>Toutes les parties sont fixées. Projection finale : ${pct(adv.projection.win)} de victoire, ${pct(adv.projection.draw)} de nul, ${pct(adv.projection.loss)} de défaite, ${adv.projection.bp.toFixed(1)} BP attendus.</p>
+      <p class="note">Passez à la ronde suivante dans l'onglet Matrice (le layout des attaquants refusés et des champions change à chaque ronde).</p></section>`;
+  }
+  if (s.step === 'defenders') {
+    const rl = (i) => us(i), cl = (j) => them(j);
+    return `<section class="panel"><h2>${mod} · choix du défenseur</h2>
+      <p class="note">Chaque équipe choisit secrètement un défenseur, puis les deux sont révélés.</p>
+      ${recommendation(adv, rl, 'Défendre avec')}
+      ${optionsTable(adv, rl, cl)}
+      ${opponentBlock(adv, rl, cl)}
+      ${heatmap(adv, rl, cl)}
+      <form class="choose" id="apply">
+        <label class="field"><span>Notre défenseur</span>${select('in-a', adv.rows.map((r) => [r.label, us(r.label)]), adv.rows[topIndex(adv.rows)].label)}</label>
+        <label class="field"><span>Leur défenseur (révélé)</span>${select('in-b', adv.cols.map((c) => [c.label, them(c.label)]), adv.cols[topIndex(adv.cols)].label)}</label>
+        <button class="btn primary" type="submit">Valider les défenseurs révélés</button>
+      </form></section>`;
+  }
+  if (s.step === 'attackers') {
+    const rl = usPair, cl = themPair;
+    return `<section class="panel"><h2>${mod} · choix des attaquants</h2>
+      <p class="note">Défenseurs révélés : <strong>${esc(us(s.dA))}</strong> pour nous, <strong>${esc(them(s.dB))}</strong> pour eux. Chaque équipe envoie secrètement deux attaquants contre le défenseur adverse.</p>
+      ${recommendation(adv, rl, `Envoyer contre ${esc(them(s.dB))}`)}
+      ${optionsTable(adv, rl, cl)}
+      ${opponentBlock(adv, rl, cl)}
+      ${heatmap(adv, rl, cl)}
+      <form class="choose" id="apply">
+        <label class="field"><span>Nos attaquants</span>${select('in-a', adv.rows.map((r, i) => [i, usPair(r.label)]), topIndex(adv.rows))}</label>
+        <label class="field"><span>Leurs attaquants (révélés)</span>${select('in-b', adv.cols.map((c, j) => [j, themPair(c.label)]), topIndex(adv.cols))}</label>
+        <button class="btn primary" type="submit">Valider les attaquants révélés</button>
+      </form></section>`;
+  }
+  if (s.step === 'choices') {
+    const rl = (b) => `${us(s.dA)} affronte ${them(b)}`;
+    const cl = (a) => `${them(s.dB)} affronte ${us(a)}`;
+    return `<section class="panel"><h2>${mod} · attaquant retenu</h2>
+      <p class="note">Leurs attaquants contre ${esc(us(s.dA))} : <strong>${esc(themPair(s.pb))}</strong>. Nos attaquants contre ${esc(them(s.dB))} : <strong>${esc(usPair(s.pa))}</strong>.
+      ${s.modules[s.mod] === 'M' ? 'Les deux attaquants refusés joueront l\'un contre l\'autre sur le layout ' + LAYOUTS[layoutForRound(cfg.round)] + '.' : 'Les attaquants refusés retournent dans le groupe.'}</p>
+      ${recommendation(adv, rl, 'Choisir :')}
+      ${optionsTable(adv, rl, cl)}
+      ${opponentBlock(adv, rl, cl)}
+      <form class="choose" id="apply">
+        <label class="field"><span>Notre défenseur affronte</span>${select('in-a', adv.rows.map((r, i) => [i, them(r.label)]), topIndex(adv.rows))}</label>
+        <label class="field"><span>Leur défenseur affronte (révélé)</span>${select('in-b', adv.cols.map((c, j) => [j, us(c.label)]), topIndex(adv.cols))}</label>
+        <button class="btn primary" type="submit">Valider les choix révélés</button>
+      </form></section>`;
+  }
+  if (s.step === 'layouts') {
+    const bestObj = adv.options[adv.best].metrics.obj;
+    return `<section class="panel"><h2>${mod} · layouts</h2>
+      <p class="note">Chaque défenseur déclare le layout de sa partie. Notre partie : <strong>${esc(us(adv.ourGame.a))}</strong> contre <strong>${esc(them(adv.ourGame.b))}</strong>.</p>
+      <div class="reco"><p>Déclarer le <strong>layout ${LAYOUTS[adv.best]}</strong>.</p>
+      <p class="note">Calculé en supposant que leur défenseur prend le layout le plus défavorable pour nous (${LAYOUTS[adv.theirAssumed]}).</p></div>
+      <div class="tablewrap"><table><thead><tr><th>Layout</th><th class="num">BP de cette partie</th><th class="num">Score du match</th><th class="num">Écart</th><th>V / N / D</th></tr></thead>
+      <tbody>${adv.options.map((o) => `<tr class="${o.layout === adv.best ? 'picked' : ''}"><td>${LAYOUTS[o.layout]}</td><td class="num">${o.gameMean.toFixed(1)}±${o.gameSd.toFixed(0)}</td>
+        <td class="num">${score(o.metrics.obj)}</td><td class="num">${signed(o.metrics.obj - bestObj)}</td><td>${miniBar(o.metrics)}</td></tr>`).join('')}</tbody></table></div>
+      <form class="choose" id="apply">
+        <label class="field"><span>Notre layout</span>${select('in-a', [0, 1, 2].map((l) => [l, `Layout ${LAYOUTS[l]}`]), adv.best)}</label>
+        <label class="field"><span>Leur layout (${esc(them(adv.theirGame.b))} contre ${esc(us(adv.theirGame.a))})</span>${select('in-b', adv.theirOptions.map((o) => [o.layout, `Layout ${LAYOUTS[o.layout]} (${o.gameMean.toFixed(1)} BP pour nous)`]), adv.theirAssumed)}</label>
+        <button class="btn primary" type="submit">Valider les layouts</button>
+      </form></section>`;
+  }
+  return '';
+}
+
+function commit(next) {
+  live = { history: [...live.history, live.state], state: next };
+  save();
+  render();
+}
+
+function bindPairing() {
+  $('#undo')?.addEventListener('click', () => {
+    if (!live.history.length) return;
+    live = { history: live.history.slice(0, -1), state: live.history[live.history.length - 1] };
+    save(); render();
+  });
+  $('#restart')?.addEventListener('click', () => { resetPairing(); render(); });
+  const adv = advice, s = live.state;
+  if (!adv || s.step === 'done') return;
+
+  $('#draw')?.addEventListener('click', () => {
+    let r = Math.random(), pick = adv.rows[adv.rows.length - 1];
+    for (const row of adv.rows) { r -= row.prob; if (r <= 0) { pick = row; break; } }
+    const idx = adv.rows.indexOf(pick);
+    const sel = $('#in-a');
+    sel.value = s.step === 'defenders' ? String(pick.label) : String(idx);
+    const label = s.step === 'defenders' ? us(pick.label) : s.step === 'attackers' ? usPair(pick.label) : them(pick.label);
+    $('#draw-out').innerHTML = `Tirage : <strong>${esc(label)}</strong>`;
+  });
+
+  const predict = $('#predict');
+  if (predict) {
+    const rowLabel = s.step === 'defenders' ? us : s.step === 'attackers' ? usPair : (b) => `${us(s.dA)} affronte ${them(b)}`;
+    const show = () => {
+      const c = adv.cols[Number(predict.value)];
+      const r = adv.rows[c.bestResponse];
+      $('#predict-out').innerHTML = `Meilleure réponse : <strong>${esc(rowLabel(r.label))}</strong> (score ${score(c.bestResponseValue)}, contre ${score(adv.value)} à l'équilibre).`;
+    };
+    predict.value = String(topIndex(adv.cols));
+    predict.addEventListener('change', show);
+    show();
+  }
+
+  $('#apply')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const a = Number($('#in-a').value), b = Number($('#in-b').value);
+    try {
+      if (s.step === 'defenders') commit(setDefenders(s, a, b));
+      else if (s.step === 'attackers') commit(setAttackers(s, adv.rows[a].label, adv.cols[b].label));
+      else if (s.step === 'choices') commit(setChoices(s, a, b));
+      else if (s.step === 'layouts') commit(setLayouts(s, a, b));
+    } catch (err) {
+      alertInline(String(err.message ?? err));
+    }
+  });
+}
+
+function alertInline(msg) {
+  const f = $('#apply');
+  if (!f) return;
+  let p = $('.warn', f);
+  if (!p) { p = document.createElement('p'); p.className = 'warn'; f.appendChild(p); }
+  p.textContent = msg;
+}
+
+// ----------------------------------------------------------- matrix view
+
+function cellColor(raw) {
+  const c = parseCell(raw);
+  if (!c) return raw && String(raw).trim() ? 'color-mix(in srgb, var(--bad) 30%, var(--surface))' : 'var(--surface)';
+  const bp = toBp(c.value, cfg.scale);
+  const d = (bp - 10) / 10;
+  const k = Math.min(1, Math.abs(d)) * 50;
+  return `color-mix(in srgb, ${d >= 0 ? 'var(--good)' : 'var(--bad)'} ${k.toFixed(0)}%, var(--surface))`;
+}
+
+function matrixView() {
+  const l = cfg.sameLayouts ? 0 : editLayout;
+  const g = cfg.grids[l];
+  const lin = cfg.scale.type === 'linear';
+  return `<div class="stack" style="margin-top:16px">
+    <section class="panel">
+      <h2>Paramètres du match</h2>
+      <div class="row">
+        <label class="field"><span>Joueurs par équipe</span>${select('p-n', [3, 4, 5, 6, 7, 8].map((x) => [x, `${x} joueurs · ${MODULES_BY_SIZE[x].map((m) => MODULE_NAMES[m]).join(', ')}`]), cfg.n)}</label>
+        <label class="field"><span>Ronde</span><input id="p-round" type="number" min="1" max="12" value="${cfg.round}" style="width:80px"></label>
+        <p class="note">Ronde ${cfg.round} : attaquants refusés et champions jouent le layout ${LAYOUTS[layoutForRound(cfg.round)]}. Victoire à ${thresholds(cfg.n).differential} BP d'écart.</p>
+      </div>
+      <div class="row">
+        <label class="field" style="min-width:260px;flex:1"><span>Objectif : gagner le match ↔ maximiser l'écart de BP (${Math.round(cfg.objective.marginWeight * 100)} %)</span>
+          <input id="p-margin" type="range" min="0" max="1" step="0.05" value="${cfg.objective.marginWeight}"></label>
+        <label class="field"><span>Valeur d'un nul</span>${select('p-draw', [[0.5, 'Demi-victoire (barème 3/2/1)'], [0, 'Nul = défaite (il faut gagner)'], [1, 'Nul = victoire (un nul suffit)']], cfg.objective.drawValue)}</label>
+      </div>
+      <div class="row">
+        <label class="field"><span>Incertitude par défaut (écart-type en BP)</span><input id="p-sd" type="number" min="0.5" max="10" step="0.5" value="${cfg.defaultSd}" style="width:90px"></label>
+        <label class="field"><span>Précision du calcul</span>${select('p-prec', [['standard', 'Standard'], ['fast', 'Rapide (8 joueurs ≈ 2× plus vite)']], cfg.precision)}</label>
+        <label class="field"><span>Format des valeurs</span>${select('p-scale', [['bp', 'BP attendus (0 à 20)'], ['linear', 'Autre échelle (conversion linéaire)']], cfg.scale.type)}</label>
+        ${lin ? `<label class="field"><span>Valeur min → BP</span><span class="row" style="gap:4px"><input id="s-inmin" type="number" value="${cfg.scale.inMin}" style="width:64px">→<input id="s-outmin" type="number" value="${cfg.scale.outMin}" style="width:64px"></span></label>
+        <label class="field"><span>Valeur max → BP</span><span class="row" style="gap:4px"><input id="s-inmax" type="number" value="${cfg.scale.inMax}" style="width:64px">→<input id="s-outmax" type="number" value="${cfg.scale.outMax}" style="width:64px"></span></label>` : ''}
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="row" style="justify-content:space-between">
+        <h2>Matrice des matchups</h2>
+        <div class="row">
+          <label class="row" style="gap:6px"><input type="checkbox" id="p-same" ${cfg.sameLayouts ? 'checked' : ''}> Même estimation pour les 3 layouts</label>
+          ${cfg.sameLayouts ? '' : `<div class="layout-tabs" role="tablist">${[0, 1, 2].map((x) => `<button role="tab" data-layout="${x}" aria-selected="${x === editLayout}">Layout ${LAYOUTS[x]}</button>`).join('')}</div>`}
+        </div>
+      </div>
+      <p class="note">Chaque case : BP attendus pour notre joueur (ligne) contre le leur (colonne). Ajoutez l'incertitude avec ± : <span class="mono">12±6</span> pour un matchup incertain, <span class="mono">12±2</span> pour un matchup bien connu. Sans ±, l'incertitude par défaut s'applique.</p>
+      <div class="tablewrap"><table class="editor"><thead><tr><th></th>${cfg.them.map((t, j) => `<th><input class="name" data-them="${j}" value="${esc(t)}" aria-label="Adversaire ${j + 1}"></th>`).join('')}</tr></thead>
+      <tbody>${g.map((row, i) => `<tr><th><input class="name" data-us="${i}" value="${esc(cfg.us[i])}" aria-label="Joueur ${i + 1}"></th>${row.map((v, j) => `<td style="background:${cellColor(v)}"><input data-cell="${i},${j}" value="${esc(v)}" aria-label="${esc(cfg.us[i])} contre ${esc(cfg.them[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Importer depuis un tableur</h2>
+      <p class="note">Dans Google Sheets, sélectionnez la matrice (avec ou sans les noms en première ligne et première colonne), copiez, puis collez ici.</p>
+      <textarea id="paste" placeholder="Collez ici les cellules copiées"></textarea>
+      <div class="row">
+        <label class="field"><span>Destination</span>${select('paste-target', [['all', 'Les 3 layouts'], ['0', 'Layout A'], ['1', 'Layout B'], ['2', 'Layout C']], 'all')}</label>
+        <button class="btn primary" id="paste-go">Importer</button>
+        <span id="paste-msg" class="note"></span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Sauvegarde</h2>
+      <p class="note">La configuration est gardée dans ce navigateur. Pour la partager avec votre équipe, copiez le texte ci-dessous et collez-le chez eux.</p>
+      <textarea id="cfg-json">${esc(JSON.stringify(cfg))}</textarea>
+      <div class="row">
+        <button class="btn" id="cfg-copy">Copier</button>
+        <button class="btn" id="cfg-load">Charger le texte collé</button>
+        <button class="btn" id="cfg-example">Remettre l'exemple</button>
+        <span id="cfg-msg" class="note"></span>
+      </div>
+    </section>
+  </div>`;
+}
+
+function changed(resetLive = false) {
+  cfg.example = false;
+  if (resetLive) resetPairing();
+  save();
+}
+
+function bindMatrix() {
+  $('#p-n').addEventListener('change', (e) => { resize(cfg, Number(e.target.value)); changed(true); render(); });
+  $('#p-round').addEventListener('change', (e) => { cfg.round = Math.max(1, Number(e.target.value) || 1); changed(true); render(); });
+  $('#p-margin').addEventListener('input', (e) => {
+    cfg.objective.marginWeight = Number(e.target.value); changed();
+    e.target.closest('label').querySelector('span').textContent = `Objectif : gagner le match ↔ maximiser l'écart de BP (${Math.round(cfg.objective.marginWeight * 100)} %)`;
+  });
+  $('#p-draw').addEventListener('change', (e) => { cfg.objective.drawValue = Number(e.target.value); changed(); });
+  $('#p-sd').addEventListener('change', (e) => { cfg.defaultSd = Math.max(0.5, Number(e.target.value) || 4); changed(); });
+  $('#p-prec').addEventListener('change', (e) => { cfg.precision = e.target.value; changed(); });
+  $('#p-scale').addEventListener('change', (e) => { cfg.scale.type = e.target.value; changed(); render(); });
+  for (const k of ['inmin', 'inmax', 'outmin', 'outmax']) {
+    $(`#s-${k}`)?.addEventListener('change', (e) => {
+      const key = { inmin: 'inMin', inmax: 'inMax', outmin: 'outMin', outmax: 'outMax' }[k];
+      cfg.scale[key] = Number(e.target.value); changed(); render();
+    });
+  }
+  $('#p-same').addEventListener('change', (e) => { cfg.sameLayouts = e.target.checked; editLayout = 0; changed(); render(); });
+  $$('.layout-tabs button').forEach((b) => b.addEventListener('click', () => { editLayout = Number(b.dataset.layout); render(); }));
+  $$('input[data-us]').forEach((inp) => inp.addEventListener('change', () => { cfg.us[Number(inp.dataset.us)] = inp.value; changed(); }));
+  $$('input[data-them]').forEach((inp) => inp.addEventListener('change', () => { cfg.them[Number(inp.dataset.them)] = inp.value; changed(); }));
+  $$('input[data-cell]').forEach((inp) => inp.addEventListener('input', () => {
+    const [i, j] = inp.dataset.cell.split(',').map(Number);
+    const l = cfg.sameLayouts ? 0 : editLayout;
+    cfg.grids[l][i][j] = inp.value.trim();
+    inp.parentElement.style.background = cellColor(inp.value);
+    changed();
+  }));
+
+  $('#paste-go').addEventListener('click', () => {
+    const msg = $('#paste-msg');
+    try {
+      const p = parseMatrix($('#paste').value);
+      const n = p.cells.length;
+      if (n < 3 || n > 8 || p.cells.some((r) => r.length !== n)) {
+        throw new Error(`La matrice collée fait ${n} × ${p.cells[0]?.length ?? 0}. Il faut une matrice carrée de 3 à 8 joueurs.`);
+      }
+      if (n !== cfg.n) { resize(cfg, n); resetPairing(); }
+      const target = $('#paste-target').value;
+      const text = (c) => (c ? `${c.value}${c.sd != null ? `±${c.sd}` : ''}` : '');
+      const grid = p.cells.map((row) => row.map(text));
+      if (target === 'all') { cfg.grids = [0, 1, 2].map(() => grid.map((r) => [...r])); cfg.sameLayouts = true; }
+      else { cfg.grids[Number(target)] = grid; cfg.sameLayouts = false; editLayout = Number(target); }
+      if (!p.rowNames[0].startsWith('Nous ')) cfg.us = p.rowNames;
+      if (!p.colNames[0].startsWith('Eux ')) cfg.them = p.colNames;
+      const bad = p.cells.flat().filter((c) => !c).length;
+      changed();
+      render();
+      $('#paste-msg').textContent = `Matrice ${n} × ${n} importée${bad ? `, ${bad} case(s) illisible(s) à vérifier` : ''}.`;
+    } catch (err) {
+      msg.textContent = String(err.message ?? err);
+    }
+  });
+
+  $('#cfg-copy').addEventListener('click', () => {
+    const ta = $('#cfg-json');
+    navigator.clipboard?.writeText(ta.value).then(
+      () => { $('#cfg-msg').textContent = 'Copié.'; },
+      () => { ta.select(); $('#cfg-msg').textContent = 'Texte sélectionné : copiez-le avec Ctrl+C.'; },
+    ) ?? (ta.select(), $('#cfg-msg').textContent = 'Texte sélectionné : copiez-le avec Ctrl+C.');
+  });
+  $('#cfg-load').addEventListener('click', () => {
+    try {
+      const c = JSON.parse($('#cfg-json').value);
+      if (!c.grids || !MODULES_BY_SIZE[c.n]) throw new Error('Configuration invalide.');
+      cfg = { ...exampleConfig(c.n), ...c };
+      resetPairing(); render();
+      $('#cfg-msg').textContent = 'Configuration chargée.';
+    } catch (err) { $('#cfg-msg').textContent = `Lecture impossible : ${err.message}`; }
+  });
+  $('#cfg-example').addEventListener('click', () => { cfg = exampleConfig(cfg.n); resetPairing(); render(); });
+}
+
+// ----------------------------------------------------------- method view
+
+function methodView() {
+  return `<article class="panel method" style="margin-top:16px">
+    <h2>Ce que calcule l'outil</h2>
+    <p>Le pairing suit le Warhammer 40,000 Teams Event Companion v1.0. Selon la taille des équipes, il enchaîne l'Initial Skirmish, le Main Engagement et le Champion System. À 6 joueurs : une Initial Skirmish, un Main Engagement, puis les champions. À 8 joueurs : deux Initial Skirmish, un Main Engagement, puis les champions.</p>
+    <p>Chaque étape est un choix secret et simultané des deux capitaines. L'outil la traite comme un jeu à deux joueurs à somme nulle. Il calcule, en remontant tout l'arbre du pairing jusqu'à la dernière partie, la stratégie qui garantit le meilleur résultat face à un adversaire qui joue parfaitement.</p>
+
+    <h2>Le score objectif</h2>
+    <p>Chaque partie est modélisée par ses BP attendus et une incertitude (écart-type). Le total de l'équipe suit alors une loi normale, ce qui donne les probabilités de victoire, de nul et de défaite du match, avec le seuil officiel (par exemple 8 BP d'écart à 6 joueurs, 12 BP à 8 joueurs).</p>
+    <ul>
+      <li><strong>Curseur à 0 %</strong> : on maximise P(victoire) + valeur du nul × P(nul). Avec le barème 3/2/1, cela revient à maximiser les points d'équipe attendus.</li>
+      <li><strong>Curseur à 100 %</strong> : on maximise les BP attendus, c'est-à-dire l'écart moyen, utile quand le classement se joue aux BP.</li>
+      <li>Entre les deux : un mélange pondéré des deux critères.</li>
+    </ul>
+    <p>Avec l'objectif « gagner le match », l'outil arbitre automatiquement le risque. Favori, il préfère des matchups sûrs (faible incertitude) qui assurent le seuil. Outsider, il préfère des matchups incertains qui gardent une chance de passer le seuil.</p>
+
+    <h2>Lire une recommandation</h2>
+    <ul>
+      <li><strong>Score</strong> : le score du match si l'on joue cette option et que l'adversaire joue sa meilleure stratégie.</li>
+      <li><strong>Pire cas</strong> : le score si l'adversaire devine notre choix et le contre au mieux. Une option avec un bon score mais un pire cas faible est un pari sur la lecture de l'adversaire.</li>
+      <li><strong>Mix</strong> : quand aucun choix fixe n'est sûr, la bonne stratégie est de varier au hasard dans les proportions indiquées. Le bouton « Tirer au sort » fait le tirage.</li>
+      <li><strong>Si vous pensez qu'ils vont jouer…</strong> : si vous avez une lecture de l'adversaire, l'outil donne la meilleure réponse à ce choix précis.</li>
+      <li>Des scores qui diffèrent de moins de 0,5 point sont équivalents compte tenu de l'imprécision des estimations.</li>
+    </ul>
+
+    <h2>Simplifications assumées</h2>
+    <ul>
+      <li>Les parties sont supposées indépendantes, et le total d'équipe est approché par une loi normale.</li>
+      <li>Pour anticiper les étapes futures, chaque défenseur est supposé prendre le layout le plus favorable à son camp d'après la matrice. À l'étape des layouts, l'outil compare les trois layouts de notre défenseur sur le score complet.</li>
+      <li>Pour accélérer le calcul, les BP cumulés sont arrondis à 0,5 BP (1 BP en mode rapide) quand l'outil réutilise un sous-arbre déjà calculé.</li>
+      <li>La matrice est la seule source de vérité : la qualité des recommandations dépend de la qualité des estimations.</li>
+    </ul>
+  </article>`;
+}
+
+// ---------------------------------------------------------------- startup
+
+$$('nav.tabs button').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; render(); }));
+render();
+
+</script>

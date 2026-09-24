@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseCell, parseMatrix, toBp, buildModel, parseDelimited, cleanName, isMissingCode } from '../src/matrix.js';
+import { parseCell, parseMatrix, toBp, buildModel, parseDelimited, cleanName, isMissingCode, swingMoments } from '../src/matrix.js';
 
 test('cell formats', () => {
   assert.deepEqual(parseCell('12'), { value: 12, sd: null });
@@ -61,7 +61,7 @@ function globalSheet(n, cell) {
 }
 
 test('reference codes resolve to BP with sd, case and accent insensitive', () => {
-  assert.deepEqual(parseCell('WIN'), { value: 14, sd: 3, code: 'WIN', nuance: 0, bp: true });
+  assert.deepEqual(parseCell('WIN'), { value: 14, sd: 3, code: 'WIN', bp: true });
   assert.equal(parseCell('p_lose').value, 8);
   assert.equal(parseCell('GAMBLE').sd, 5);
   assert.equal(parseCell('SAIS-PÔ'), null);
@@ -111,35 +111,50 @@ test('code cells bypass the linear scale, numbers do not', () => {
   assert.equal(m.mu[0][1][0], 10);
 });
 
-test('code nuances: + / ++ raise, - / -- lower the centre', () => {
-  assert.deepEqual(parseCell('p_WIN+'), { value: 13, sd: 3, code: 'p_WIN', nuance: 1, bp: true });
-  assert.equal(parseCell('p_WIN++').value, 14);
-  assert.equal(parseCell('WIN-').value, 13);
-  assert.equal(parseCell('WIN--').value, 12);
-  assert.equal(parseCell('p_lose +').value, 9);
-  assert.equal(parseCell('p_WIN').nuance, 0);
+test('swingMoments: mean and sd of a two-outcome game', () => {
+  const m = swingMoments(12, 2, 0.25, 19, 1.5);
+  assert.ok(Math.abs(m.mean - 13.75) < 1e-12);
+  assert.ok(Math.abs(m.sd - Math.sqrt(12.75)) < 1e-12);
+  assert.deepEqual(swingMoments(12, 3, 0, 18, 2), { mean: 12, sd: 3 });
+  const all = swingMoments(12, 3, 1, 18, 2);
+  assert.ok(Math.abs(all.mean - 18) < 1e-12 && Math.abs(all.sd - 2) < 1e-12);
 });
 
-test('code nuance step is configurable and clamped to 0-20', () => {
-  assert.equal(parseCell('p_WIN+', undefined, { nuanceStep: 1.5 }).value, 13.5);
-  assert.equal(parseCell('FACILE++', undefined, { nuanceStep: 3 }).value, 20);
-  assert.equal(parseCell('ALED--', undefined, { nuanceStep: 3 }).value, 0);
-  assert.equal(parseCell('p_WIN+', undefined, { nuanceStep: 0 }).value, 12);
+test('"!" = stable result with a chance to punish (default 25 %, 18 BP)', () => {
+  const c = parseCell('p_WIN!');
+  const ref = swingMoments(12, 3, 0.25, 18, 2);
+  assert.equal(c.code, 'p_WIN');
+  assert.ok(Math.abs(c.value - ref.mean) < 1e-12); // 13.5
+  assert.ok(Math.abs(c.sd - ref.sd) < 1e-12);
+  assert.ok(c.sd > 3); // wider than a plain p_WIN
+  assert.deepEqual(c.swing, { kind: 'punish', chance: 25, base: 12, target: 18 });
 });
 
-test('code with explicit sd, with or without nuance', () => {
-  assert.equal(parseCell('p_WIN±5').sd, 5);
-  assert.equal(parseCell('p_WIN±5').value, 12);
-  const c = parseCell('p_LOSE- ±4');
-  assert.equal(c.value, 7);
-  assert.equal(c.sd, 4);
-  assert.equal(parseCell('p_WIN+-2').sd, 2); // "+-" is the ± notation, not a nuance
-  assert.equal(parseCell('p_WIN+-2').value, 12);
+test('"?" = risk of being punished (default 3 BP)', () => {
+  const c = parseCell('WIN?');
+  assert.ok(Math.abs(c.value - swingMoments(14, 3, 0.25, 3, 2).mean) < 1e-12); // 11.25
+  assert.equal(c.swing.kind, 'punished');
 });
 
-test('invalid nuances are rejected', () => {
-  assert.equal(parseCell('p_WIN+++'), null);
-  assert.equal(parseCell('INCONNU+'), null);
-  assert.equal(parseCell('+'), null);
+test('swing chance, target and base sd can be set', () => {
+  assert.equal(parseCell('p_WIN!40').swing.chance, 40);
+  assert.equal(parseCell('p_WIN! 40%').swing.chance, 40);
+  assert.equal(parseCell('p_WIN!0').value, 12);
+  const custom = parseCell('DRAW!', undefined, { swing: { chance: 50, high: 20, highSd: 0 } });
+  assert.equal(custom.value, 15);
+  const withSd = parseCell('p_WIN±2 ');
+  assert.equal(withSd.sd, 2);
+  const both = parseCell('p_WIN!±1');
+  assert.ok(Math.abs(both.sd - swingMoments(12, 1, 0.25, 18, 2).sd) < 1e-12);
+});
+
+test('invalid swings and removed +/- nuances are rejected', () => {
+  assert.equal(parseCell('p_WIN!!'), null);
+  assert.equal(parseCell('p_WIN!150'), null);
+  assert.equal(parseCell('INCONNU!'), null);
+  assert.equal(parseCell('!'), null);
+  assert.equal(parseCell('?'), null);
+  assert.equal(parseCell('p_WIN+'), null);
+  assert.equal(parseCell('WIN--'), null);
   assert.equal(parseCell('SAIS-PÔ'), null);
 });

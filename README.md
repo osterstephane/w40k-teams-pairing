@@ -20,7 +20,7 @@ Sans connexion : ouvrez `dist/index.html` dans un navigateur. Le fichier est aut
 
 Formats de cellule acceptés :
 
-- codes du **référentiel des estimés** : `FACILE`, `WIN`, `p_WIN`, `DRAW`, `p_LOSE`, `LOSE`, `ALED`, `GAMBLE`. `SAIS-PÔ` compte comme une estimation manquante. Le centre et l'écart-type de chaque code sont modifiables dans l'onglet Matrice. Un code peut être nuancé : `p_WIN+` (« p_WIN, mais il peut aller chercher plus »), `p_WIN++`, `WIN-`, `WIN--` (1 BP par signe, réglable), et recevoir son propre écart-type : `p_WIN±5` ;
+- codes du **référentiel des estimés** : `FACILE`, `WIN`, `p_WIN`, `DRAW`, `p_LOSE`, `LOSE`, `ALED`, `GAMBLE`. `SAIS-PÔ` compte comme une estimation manquante. Le centre et l'écart-type de chaque code sont modifiables dans l'onglet Matrice. Un code peut porter un scénario : `p_WIN!` (« p_WIN stable, mais je peux punir une erreur adverse et aller chercher un gros score »), `WIN?` (« WIN, mais je peux me faire punir »), `p_WIN!40` (chance explicite de 40 %). Il peut aussi recevoir son propre écart-type : `p_WIN±5` ;
 - BP : `12`, `12,5`, `12±4` (valeur ± incertitude en BP), `12 (4)`. Une autre échelle (par exemple -2 à +2) peut être convertie linéairement en BP dans les paramètres.
 
 Import depuis Google Sheets par copier-coller, deux formats reconnus :

@@ -39,16 +39,30 @@ export function isMissingCode(text) {
   return MISSING_CODES.has(c) || MISSING_CODES.has(c.replace(/-/g, ''));
 }
 
-// Code cell with optional nuance and uncertainty:
-//   "p_WIN+" / "p_WIN++" : better than the plain code (one / two steps up)
-//   "p_WIN-" / "p_WIN--" : worse than the plain code
-//   "WIN±5", "p_LOSE- ±4" : explicit standard deviation in BP
-const CODE_CELL = /^\s*(.*?)\s*(\+{1,2}|-{1,2})?\s*(?:(?:±|\+-|\+\/-)\s*(\d+(?:[.,]\d+)?))?\s*$/;
+// Code cell with an optional swing scenario and uncertainty:
+//   "p_WIN!"   : stable p_WIN, with a chance to punish an opponent's mistake
+//                and reach a big score ("upside")
+//   "p_WIN?"   : p_WIN, with a risk of being punished ("downside")
+//   "p_WIN!30" : same with an explicit chance (30 %); "%" is optional
+//   "WIN±5"    : explicit standard deviation in BP for the base result
+const CODE_CELL = /^\s*(.*?)\s*(?:([!?])\s*(\d{1,2}(?:[.,]\d+)?)?\s*%?)?\s*(?:(?:±|\+-|\+\/-)\s*(\d+(?:[.,]\d+)?))?\s*$/;
 
-export const DEFAULT_NUANCE_STEP = 1;
+// Defaults for "!" / "?" (editable in the Matrix tab):
+//   chance : probability (%) that the swing happens
+//   high   : BP reached when we punish (sd highSd)
+//   low    : BP left when we get punished (sd lowSd)
+export const DEFAULT_SWING = { chance: 25, high: 18, highSd: 2, low: 3, lowSd: 2 };
 
-// Returns { value, sd, code?, nuance?, bp? } or null. Code cells are already in BP.
-// options.nuanceStep: BP added per "+" (removed per "-"), default 1.
+// Mean and sd of a two-outcome game: base N(c, s²) with probability 1 - p,
+// swing N(h, sh²) with probability p (moment matching, see docs/MODEL.md).
+export function swingMoments(c, s, p, h, sh) {
+  const mean = (1 - p) * c + p * h;
+  const ex2 = (1 - p) * (s * s + c * c) + p * (sh * sh + h * h);
+  return { mean, sd: Math.sqrt(Math.max(0, ex2 - mean * mean)) };
+}
+
+// Returns { value, sd, code?, swing?, bp? } or null. Code cells are already in BP.
+// options.swing: defaults for "!" / "?" (see DEFAULT_SWING).
 export function parseCell(text, codes = DEFAULT_CODES, options = {}) {
   if (text == null) return null;
   const num = (s) => (s == null ? null : parseFloat(s.replace(',', '.')));
@@ -56,17 +70,22 @@ export function parseCell(text, codes = DEFAULT_CODES, options = {}) {
   if (m) return { value: num(m[1]), sd: num(m[2] ?? m[3]) };
   const find = (t) => codes.find((c) => normaliseCode(c.code) === normaliseCode(t));
   const exact = normaliseCode(text) ? find(text) : null;
-  if (exact) return { value: exact.mean, sd: exact.sd, code: exact.code, nuance: 0, bp: true };
+  if (exact) return { value: exact.mean, sd: exact.sd, code: exact.code, bp: true };
   const c = CODE_CELL.exec(String(text));
   if (!c || !c[1]) return null;
   const hit = find(c[1]);
   if (!hit) return null;
-  const nuance = c[2] ? (c[2][0] === '+' ? 1 : -1) * c[2].length : 0;
-  const step = options.nuanceStep ?? DEFAULT_NUANCE_STEP;
+  const base = { mean: hit.mean, sd: c[4] != null ? num(c[4]) : hit.sd };
+  if (!c[2]) return { value: base.mean, sd: base.sd, code: hit.code, bp: true };
+  const sw = { ...DEFAULT_SWING, ...options.swing };
+  const chance = c[3] != null ? num(c[3]) : sw.chance;
+  if (!(chance >= 0 && chance <= 100)) return null;
+  const up = c[2] === '!';
+  const { mean, sd } = swingMoments(base.mean, base.sd, chance / 100, up ? sw.high : sw.low, up ? sw.highSd : sw.lowSd);
   return {
-    value: Math.max(0, Math.min(20, hit.mean + nuance * step)),
-    sd: c[3] != null ? num(c[3]) : hit.sd,
-    code: hit.code, nuance, bp: true,
+    value: Math.max(0, Math.min(20, mean)), sd,
+    code: hit.code, bp: true,
+    swing: { kind: up ? 'punish' : 'punished', chance, base: base.mean, target: up ? sw.high : sw.low },
   };
 }
 

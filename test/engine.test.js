@@ -128,3 +128,18 @@ test('boundary: win threshold uses the companion differential', () => {
   assert.ok(e.terminal(57, 1e-4)[2] > 0.999);
   assert.ok(e.terminal(56, 1e-4)[3] > 0.999);
 });
+
+test('a punish swing is well approximated by its mean and sd at team level', () => {
+  // 8 players (win at >= 86 BP). 7 other games ~ N(m7, 7 * 3^2).
+  // Last game: stable 12 +/- 2, 25 % chance to reach 19 +/- 1.5.
+  const [p, c, s, h, sh] = [0.25, 12, 2, 19, 1.5];
+  const mean = (1 - p) * c + p * h;
+  const variance = (1 - p) * (s * s + c * c) + p * (sh * sh + h * h) - mean * mean;
+  for (const m7 of [66, 70, 74, 78]) {
+    const v7 = 7 * 9;
+    const exact = (1 - p) * (1 - phi((85.5 - m7 - c) / Math.sqrt(v7 + s * s)))
+      + p * (1 - phi((85.5 - m7 - h) / Math.sqrt(v7 + sh * sh)));
+    const approx = 1 - phi((85.5 - m7 - mean) / Math.sqrt(v7 + variance));
+    assert.ok(Math.abs(exact - approx) < 0.005, `m7=${m7}: ${exact} vs ${approx}`);
+  }
+});

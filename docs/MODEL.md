@@ -43,11 +43,26 @@ Les codes de la matrice d'équipe sont convertis en (centre, écart-type) en BP.
 
 `SAIS-PÔ` (estimation manquante) est compté comme DRAW (10 BP, incertitude par défaut) et signalé dans l'interface.
 
-### Nuances
+### Punir / se faire punir
 
-Un code suivi de `+` ou `-` décale le centre d'un cran (1 BP par défaut, réglable de 0 à 4 BP) ; `++` / `--` de deux crans. Exemple : `p_WIN+` = 13 BP, `WIN--` = 12 BP. L'écart-type reste celui du code, sauf s'il est précisé : `p_WIN±5`, `p_LOSE- ±4`.
+Un joueur peut indiquer qu'un résultat est stable, mais qu'un scénario plus rare change tout :
 
-Pourquoi un décalage du centre, et pas une distribution asymétrique : le résultat du match dépend de la somme des 6 à 8 parties, qui ne retient de chaque partie que sa moyenne et sa variance. « Il peut aller chercher plus » se traduit donc par une moyenne plus haute ; un matchup plus incertain que son code, par un écart-type plus grand.
+- `p_WIN!` : p_WIN stable, avec une chance de **punir** une erreur adverse et d'aller chercher un gros score ;
+- `WIN?` : WIN, avec un risque de **se faire punir** ;
+- `p_WIN!40` : même chose avec une chance explicite de 40 %.
+
+Réglages par défaut (onglet Matrice) : 25 % de chances, 18 ± 2 BP quand on punit, 3 ± 2 BP quand on se fait punir. Ce sont des **choix de l'outil**, à ajuster par l'équipe.
+
+La partie a alors deux issues : le résultat du code (probabilité 1 − p) ou le scénario (probabilité p). Le moteur la représente par sa moyenne et son écart-type exacts :
+
+```
+moyenne = (1 − p)·c + p·h
+variance = (1 − p)(s² + c²) + p(sh² + h²) − moyenne²
+```
+
+Exemple : `p_WIN!` = 12 ± 3 à 75 %, 18 ± 2 à 25 %, soit 13,5 BP de moyenne, avec un écart-type plus large.
+
+Cette approximation est précise au niveau du match : la victoire dépend de la somme des 6 à 8 parties. Sur un match à 8 joueurs, l'écart entre la probabilité de victoire exacte et celle du moteur reste sous 0,5 point (test `a punish swing is well approximated…`). Ignorer ce potentiel, en notant un simple p_WIN, sous-estimerait la probabilité de victoire de 6 à 8 points dans ce même exemple.
 
 ## Objectif
 

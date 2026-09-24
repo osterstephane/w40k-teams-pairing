@@ -39,18 +39,35 @@ export function isMissingCode(text) {
   return MISSING_CODES.has(c) || MISSING_CODES.has(c.replace(/-/g, ''));
 }
 
-// Returns { value, sd, code? , bp? } or null. Code cells are already in BP.
-export function parseCell(text, codes = DEFAULT_CODES) {
+// Code cell with optional nuance and uncertainty:
+//   "p_WIN+" / "p_WIN++" : better than the plain code (one / two steps up)
+//   "p_WIN-" / "p_WIN--" : worse than the plain code
+//   "WIN±5", "p_LOSE- ±4" : explicit standard deviation in BP
+const CODE_CELL = /^\s*(.*?)\s*(\+{1,2}|-{1,2})?\s*(?:(?:±|\+-|\+\/-)\s*(\d+(?:[.,]\d+)?))?\s*$/;
+
+export const DEFAULT_NUANCE_STEP = 1;
+
+// Returns { value, sd, code?, nuance?, bp? } or null. Code cells are already in BP.
+// options.nuanceStep: BP added per "+" (removed per "-"), default 1.
+export function parseCell(text, codes = DEFAULT_CODES, options = {}) {
   if (text == null) return null;
+  const num = (s) => (s == null ? null : parseFloat(s.replace(',', '.')));
   const m = CELL.exec(String(text));
-  if (m) {
-    const num = (s) => (s == null ? null : parseFloat(s.replace(',', '.')));
-    return { value: num(m[1]), sd: num(m[2] ?? m[3]) };
-  }
-  const key = normaliseCode(text);
-  if (!key) return null;
-  const hit = codes.find((c) => normaliseCode(c.code) === key);
-  return hit ? { value: hit.mean, sd: hit.sd, code: hit.code, bp: true } : null;
+  if (m) return { value: num(m[1]), sd: num(m[2] ?? m[3]) };
+  const find = (t) => codes.find((c) => normaliseCode(c.code) === normaliseCode(t));
+  const exact = normaliseCode(text) ? find(text) : null;
+  if (exact) return { value: exact.mean, sd: exact.sd, code: exact.code, nuance: 0, bp: true };
+  const c = CODE_CELL.exec(String(text));
+  if (!c || !c[1]) return null;
+  const hit = find(c[1]);
+  if (!hit) return null;
+  const nuance = c[2] ? (c[2][0] === '+' ? 1 : -1) * c[2].length : 0;
+  const step = options.nuanceStep ?? DEFAULT_NUANCE_STEP;
+  return {
+    value: Math.max(0, Math.min(20, hit.mean + nuance * step)),
+    sd: c[3] != null ? num(c[3]) : hit.sd,
+    code: hit.code, nuance, bp: true,
+  };
 }
 
 // RFC-4180-ish parser: handles quoted fields containing separators, quotes and

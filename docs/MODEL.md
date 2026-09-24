@@ -43,6 +43,12 @@ Les codes de la matrice d'équipe sont convertis en (centre, écart-type) en BP.
 
 `SAIS-PÔ` (estimation manquante) est compté comme DRAW (10 BP, incertitude par défaut) et signalé dans l'interface.
 
+### Nuances
+
+Un code suivi de `+` ou `-` décale le centre d'un cran (1 BP par défaut, réglable de 0 à 4 BP) ; `++` / `--` de deux crans. Exemple : `p_WIN+` = 13 BP, `WIN--` = 12 BP. L'écart-type reste celui du code, sauf s'il est précisé : `p_WIN±5`, `p_LOSE- ±4`.
+
+Pourquoi un décalage du centre, et pas une distribution asymétrique : le résultat du match dépend de la somme des 6 à 8 parties, qui ne retient de chaque partie que sa moyenne et sa variance. « Il peut aller chercher plus » se traduit donc par une moyenne plus haute ; un matchup plus incertain que son code, par un écart-type plus grand.
+
 ## Objectif
 
 ```

@@ -44,6 +44,7 @@ function exampleConfig(n = 6) {
     objective: { marginWeight: 0, drawValue: 0.5 },
     precision: 'standard',
     codes: defaultCodes(),
+    nuanceStep: 1,
   };
 }
 
@@ -76,6 +77,7 @@ function save() {
 const saved = load();
 let cfg = saved?.cfg ?? exampleConfig(6);
 if (!Array.isArray(cfg.codes)) cfg.codes = defaultCodes();
+if (cfg.nuanceStep == null) cfg.nuanceStep = 1;
 let live = saved?.live ?? { history: [], state: initialState(cfg.n, cfg.round) };
 if (live.state.n !== cfg.n) live = { history: [], state: initialState(cfg.n, cfg.round) };
 let tab = 'pairing';
@@ -88,7 +90,7 @@ const themPair = (p) => `${them(p[0])} + ${them(p[1])}`;
 
 function currentModel() {
   const parsed = [0, 1, 2].map((l) => ({
-    cells: (cfg.sameLayouts ? cfg.grids[0] : cfg.grids[l]).map((row) => row.map((v) => parseCell(v, cfg.codes))),
+    cells: (cfg.sameLayouts ? cfg.grids[0] : cfg.grids[l]).map((row) => row.map((v) => parseCell(v, cfg.codes, { nuanceStep: Number(cfg.nuanceStep) }))),
   }));
   return buildModel(parsed, cfg.n, cfg.scale, Number(cfg.defaultSd) || 4);
 }
@@ -482,7 +484,7 @@ function alertInline(msg) {
 // ----------------------------------------------------------- matrix view
 
 function cellColor(raw) {
-  const c = parseCell(raw, cfg.codes);
+  const c = parseCell(raw, cfg.codes, { nuanceStep: Number(cfg.nuanceStep) });
   if (!c) {
     if (!raw || !String(raw).trim() || isMissingCode(raw)) return 'var(--surface-2)';
     return 'color-mix(in srgb, var(--bad) 30%, var(--surface))';
@@ -528,7 +530,7 @@ function matrixView() {
           ${cfg.sameLayouts ? '' : `<div class="layout-tabs" role="tablist">${[0, 1, 2].map((x) => `<button role="tab" data-layout="${x}" aria-selected="${x === editLayout}">Layout ${LAYOUTS[x]}</button>`).join('')}</div>`}
         </div>
       </div>
-      <p class="note">Chaque case : un code du référentiel (<span class="mono">${cfg.codes.map((c) => esc(c.code)).join(', ')}</span>) ou des BP attendus pour notre joueur (ligne) contre le leur (colonne). En BP, ajoutez l'incertitude avec ± : <span class="mono">12±6</span> pour un matchup incertain, <span class="mono">12±2</span> pour un matchup bien connu.</p>
+      <p class="note">Chaque case : un code du référentiel (<span class="mono">${cfg.codes.map((c) => esc(c.code)).join(', ')}</span>), éventuellement nuancé (<span class="mono">p_WIN+</span>, <span class="mono">WIN-</span>), ou des BP attendus pour notre joueur (ligne) contre le leur (colonne). En BP, ajoutez l'incertitude avec ± : <span class="mono">12±6</span> pour un matchup incertain, <span class="mono">12±2</span> pour un matchup bien connu.</p>
       <datalist id="codes-list">${cfg.codes.map((c) => `<option value="${esc(c.code)}">${esc(c.label ?? '')}</option>`).join('')}<option value="SAIS-PÔ">Estimation manquante</option></datalist>
       <div class="tablewrap"><table class="editor"><thead><tr><th></th>${cfg.them.map((t, j) => `<th><input class="name" data-them="${j}" value="${esc(t)}" aria-label="Adversaire ${j + 1}"></th>`).join('')}</tr></thead>
       <tbody>${g.map((row, i) => `<tr><th><input class="name" data-us="${i}" value="${esc(cfg.us[i])}" aria-label="Joueur ${i + 1}"></th>${row.map((v, j) => `<td style="background:${cellColor(v)}"><input data-cell="${i},${j}" list="codes-list" value="${esc(v)}" aria-label="${esc(cfg.us[i])} contre ${esc(cfg.them[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
@@ -541,6 +543,10 @@ function matrixView() {
       <tbody>${cfg.codes.map((c, i) => `<tr><td class="mono">${esc(c.code)}</td><td class="muted">${esc(c.label ?? '')}</td>
         <td class="num"><input class="inp" type="number" min="0" max="20" step="0.5" data-code-mean="${i}" value="${c.mean}" style="width:72px"></td>
         <td class="num"><input class="inp" type="number" min="0.5" max="10" step="0.5" data-code-sd="${i}" value="${c.sd}" style="width:72px"></td></tr>`).join('')}</tbody></table></div>
+      <div class="row">
+        <label class="field"><span>Nuance + / − (BP par signe)</span><input id="p-nuance" type="number" min="0" max="4" step="0.5" value="${cfg.nuanceStep}" style="width:80px"></label>
+        <p class="note">Ajoutez + ou − après un code pour le nuancer. <span class="mono">p_WIN+</span> : « p_WIN, mais il peut aller chercher plus » (${esc(String(cfg.nuanceStep))} BP de plus). <span class="mono">p_WIN++</span> : deux crans. <span class="mono">WIN-</span> : « WIN, mais il risque de faire moins ». Pour un matchup plus ou moins prévisible que le code, précisez l'écart-type : <span class="mono">p_WIN±5</span>.</p>
+      </div>
       <div class="row"><button class="btn small" id="codes-reset">Revenir aux valeurs par défaut</button></div>
     </section>
 
@@ -610,7 +616,8 @@ function bindMatrix() {
   $$('input[data-code-sd]').forEach((inp) => inp.addEventListener('change', () => {
     cfg.codes[Number(inp.dataset.codeSd)].sd = Math.max(0.5, Number(inp.value) || 3); changed(); render();
   }));
-  $('#codes-reset').addEventListener('click', () => { cfg.codes = defaultCodes(); changed(); render(); });
+  $('#codes-reset').addEventListener('click', () => { cfg.codes = defaultCodes(); cfg.nuanceStep = 1; changed(); render(); });
+  $('#p-nuance').addEventListener('change', (e) => { cfg.nuanceStep = Math.max(0, Math.min(4, Number(e.target.value) || 0)); changed(); render(); });
 
   $('#paste-go').addEventListener('click', () => {
     const msg = $('#paste-msg');
@@ -650,6 +657,7 @@ function bindMatrix() {
       if (!c.grids || !MODULES_BY_SIZE[c.n]) throw new Error('Configuration invalide.');
       cfg = { ...exampleConfig(c.n), ...c };
       if (!Array.isArray(cfg.codes)) cfg.codes = defaultCodes();
+      if (cfg.nuanceStep == null) cfg.nuanceStep = 1;
       resetPairing(); render();
       $('#cfg-msg').textContent = 'Configuration chargée.';
     } catch (err) { $('#cfg-msg').textContent = `Lecture impossible : ${err.message}`; }

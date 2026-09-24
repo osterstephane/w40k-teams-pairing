@@ -10,7 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');
 
 // Order matters: dependencies first.
-const CORE = ['src/rules.js', 'src/matrixgame.js', 'src/engine.js', 'src/pairing.js', 'src/advisor.js', 'src/matrix.js'];
+const CORE = ['src/rules.js', 'src/matrixgame.js', 'src/engine.js', 'src/pairing.js', 'src/advisor.js', 'src/matrix.js', 'src/shared.js'];
 
 function strip(src, file) {
   const out = src

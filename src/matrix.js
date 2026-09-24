@@ -252,3 +252,41 @@ export function buildModel(parsedByLayout, n, scale, defaultSd) {
   }
   return { mu, sd, missing };
 }
+
+// ------------------------------------------------------------ export
+
+// Grid actually used for layout l (the first one when all layouts share it).
+export function layoutGrid(grids, sameLayouts, l) {
+  return sameLayouts ? grids[0] : grids[l];
+}
+
+const tsvCell = (v) => {
+  const s = String(v ?? '');
+  return /[\t\n"]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
+// "Matrice globale" layout: a header row, then three rows (Layout A/B/C)
+// per player. Pasting it back into the tool (or Google Sheets) round-trips.
+export function toGlobalTsv({ us, them, grids, sameLayouts }) {
+  const lines = [['Joueur', 'Layout', ...them].map(tsvCell).join('\t')];
+  us.forEach((name, i) => {
+    for (let l = 0; l < 3; l++) {
+      const row = layoutGrid(grids, sameLayouts, l)[i] ?? [];
+      lines.push([name, `Layout ${'ABC'[l]}`, ...them.map((_, j) => row[j] ?? '')].map(tsvCell).join('\t'));
+    }
+  });
+  return lines.join('\n');
+}
+
+// Estimates only, same row order as the Matrice globale (player 1 A/B/C,
+// player 2 A/B/C...), to paste into the sheet's block of cells.
+export function toValuesTsv({ us, them, grids, sameLayouts }) {
+  const lines = [];
+  us.forEach((_, i) => {
+    for (let l = 0; l < 3; l++) {
+      const row = layoutGrid(grids, sameLayouts, l)[i] ?? [];
+      lines.push(them.map((_, j) => tsvCell(row[j] ?? '')).join('\t'));
+    }
+  });
+  return lines.join('\n');
+}

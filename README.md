@@ -28,6 +28,25 @@ Import depuis Google Sheets par copier-coller, deux formats reconnus :
 - **Matrice globale** : une ligne par joueur et par layout, avec une colonne « Layout » (Layout A / B / C) et les adversaires en colonnes. On peut coller tout l'onglet, titre compris ; les cellules sur deux lignes (« Joueur 1 / À renseigner ») sont gérées ;
 - grille carrée simple (nos joueurs en lignes, les leurs en colonnes).
 
+### Exporter vers Google Sheets
+
+Onglet Matrice → « Exporter vers Google Sheets » :
+
+- **Copier la matrice complète** : en-tête, noms et trois lignes par joueur, au format de la Matrice globale, à coller dans un onglet vide ;
+- **Copier les estimations seules** : uniquement les cases, dans le même ordre, à coller sur la première case d'estimation d'une Matrice globale existante.
+
+### Matrice d'équipe partagée (version Claude)
+
+Dans la version publiée sur Claude, la matrice (cases, noms, référentiel) peut être partagée en direct avec l'équipe :
+
+1. le capitaine ouvre l'onglet Matrice et clique sur « Partager ma matrice avec l'équipe » ;
+2. il partage la page avec ses coéquipiers (menu Share de la page Claude) ;
+3. chaque modification apparaît en direct chez les autres. Deux personnes peuvent modifier des cases différentes en même temps.
+
+Qui peut modifier : les membres de l'organisation Claude du propriétaire qui ont accès à la page. Les personnes invitées par e-mail hors de l'organisation voient la matrice en direct, en lecture seule. Une page qui utilise ce stockage ne peut pas être partagée par lien public.
+
+Le pairing en cours reste propre à chaque appareil. La version GitHub Pages et le fichier `dist/index.html` n'ont pas de matrice partagée : la matrice reste dans le navigateur, et se partage par le texte de Sauvegarde ou par Google Sheets.
+
 ## Pairing par taille d'équipe (Teams Event Companion, section 2)
 
 | Joueurs | Modules | Écart pour gagner |
@@ -75,3 +94,4 @@ Pour développer sur les sources (`index.html` + `src/*.js`), servez le dossier 
 | `src/matrix.js` | Import de matrice depuis un tableur |
 | `src/ui.js`, `index.html` | Interface |
 | `src/worker.js` | Calcul en arrière-plan (Web Worker) |
+| `src/shared.js` | Synchronisation de la matrice d'équipe (version Claude) |

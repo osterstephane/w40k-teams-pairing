@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseCell, parseMatrix, toBp, buildModel, parseDelimited, cleanName, isMissingCode, swingMoments, formatCodeCell } from '../src/matrix.js';
+import { parseCell, parseMatrix, toBp, buildModel, parseDelimited, cleanName, isMissingCode, swingMoments, formatCodeCell, toGlobalTsv, toValuesTsv } from '../src/matrix.js';
 
 test('cell formats', () => {
   assert.deepEqual(parseCell('12'), { value: 12, sd: null });
@@ -193,4 +193,38 @@ test('formatCodeCell writes only what differs from the defaults and round-trips'
     const c = parseCell(text);
     assert.equal(formatCodeCell({ code: c.code, kind: c.swing.kind, chance: c.swing.chance, target: c.swing.target }), text);
   }
+});
+
+const exportCfg = {
+  us: ['Alice', 'Bob'],
+  them: ['Orks', 'Eldar "Craftworld"'],
+  grids: [
+    [['WIN', 'p_WIN!40_20'], ['DRAW', 'SAIS-PÔ']],
+    [['FACILE', 'LOSE'], ['p_LOSE?50_3', '']],
+    [['ALED', 'GAMBLE'], ['12±4', 'WIN']],
+  ],
+  sameLayouts: false,
+};
+
+test('Matrice globale export round-trips through the importer', () => {
+  const text = toGlobalTsv(exportCfg);
+  const lines = text.split('\n');
+  assert.equal(lines.length, 1 + 2 * 3);
+  assert.equal(lines[0], 'Joueur\tLayout\tOrks\t"Eldar ""Craftworld"""');
+  assert.equal(lines[1], 'Alice\tLayout A\tWIN\tp_WIN!40_20');
+  assert.equal(lines[6], 'Bob\tLayout C\t12±4\tWIN');
+  const p = parseMatrix(text);
+  assert.deepEqual(p.rowNames, exportCfg.us);
+  assert.deepEqual(p.colNames, exportCfg.them);
+  assert.deepEqual(p.layouts.map((x) => x.raw), exportCfg.grids);
+});
+
+test('values-only export keeps the Matrice globale row order', () => {
+  const lines = toValuesTsv(exportCfg).split('\n');
+  assert.deepEqual(lines, ['WIN\tp_WIN!40_20', 'FACILE\tLOSE', 'ALED\tGAMBLE', 'DRAW\tSAIS-PÔ', 'p_LOSE?50_3\t', '12±4\tWIN']);
+});
+
+test('export with one estimate for all layouts repeats layout A', () => {
+  const lines = toValuesTsv({ ...exportCfg, sameLayouts: true }).split('\n');
+  assert.deepEqual(lines.slice(0, 3), ['WIN\tp_WIN!40_20', 'WIN\tp_WIN!40_20', 'WIN\tp_WIN!40_20']);
 });

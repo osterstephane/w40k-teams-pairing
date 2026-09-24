@@ -1,5 +1,6 @@
 // User interface (vanilla JS, no framework).
-import { parseCell, parseMatrix, buildModel, toBp, DEFAULT_CODES, DEFAULT_SWING, isMissingCode, formatCodeCell } from './matrix.js';
+import { parseCell, parseMatrix, buildModel, toBp, DEFAULT_CODES, DEFAULT_SWING, isMissingCode, formatCodeCell, toGlobalTsv, toValuesTsv } from './matrix.js';
+import { SharedMatrix } from './shared.js';
 import { initialState, setDefenders, setAttackers, setChoices, setLayouts } from './pairing.js';
 import { MODULES_BY_SIZE, thresholds, LAYOUTS, layoutForRound } from './rules.js';
 import { createEngine } from './engine.js';
@@ -273,6 +274,7 @@ function pairingView() {
         </div>
         ${timeline()}
         ${cfg.example ? '<p class="note">Données d\'exemple. Remplacez-les dans l\'onglet Matrice.</p>' : ''}
+        ${shared?.status === 'live' && shared.enabled ? '<p class="note">Matrice d\'équipe synchronisée.</p>' : ''}
         ${ec.missing ? `<p class="warn">${ec.missing} case(s) de matrice à estimer (vides, SAIS-PÔ ou illisibles), comptées comme DRAW (10 BP) en attendant.</p>` : ''}
       </section>
       ${main}
@@ -602,6 +604,7 @@ function matrixView() {
   const g = cfg.grids[l];
   const lin = cfg.scale.type === 'linear';
   return `<div class="stack" style="margin-top:16px">
+    ${sharedPanel()}
     <section class="panel">
       <h2>Paramètres du match</h2>
       <div class="row">
@@ -667,6 +670,17 @@ function matrixView() {
     </section>
 
     <section class="panel">
+      <h2>Exporter vers Google Sheets</h2>
+      <p class="note"><strong>Matrice complète</strong> : en-tête, noms et trois lignes par joueur (Layout A, B, C), au format de la Matrice globale. À coller dans un onglet vide. <strong>Estimations seules</strong> : uniquement les cases, dans le même ordre, à coller sur la première case d'estimation de votre Matrice globale existante.</p>
+      <div class="row">
+        <button class="btn" id="ex-global">Copier la matrice complète</button>
+        <button class="btn" id="ex-values">Copier les estimations seules</button>
+        <span id="ex-msg" class="note"></span>
+      </div>
+      <textarea id="ex-text" hidden readonly aria-label="Texte à copier"></textarea>
+    </section>
+
+    <section class="panel">
       <h2>Sauvegarde</h2>
       <p class="note">La configuration est gardée dans ce navigateur. Pour la partager avec votre équipe, copiez le texte ci-dessous et collez-le chez eux.</p>
       <textarea id="cfg-json">${esc(JSON.stringify(cfg))}</textarea>
@@ -684,6 +698,111 @@ function changed(resetLive = false) {
   cfg.example = false;
   if (resetLive) resetPairing();
   save();
+  shared?.localChanged();
+}
+
+// --------------------------------------------------------- team matrix
+
+let shared = null; // SharedMatrix when this page runs as a Claude artifact with db
+
+function sharedPanel() {
+  if (!shared) return '';
+  const st = shared.status;
+  const when = shared.updatedAt ? new Date(shared.updatedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : null;
+  let body = '';
+  if (!shared.enabled) {
+    body = '<p><span class="chip">synchro coupée</span> Vous travaillez sur une copie locale. En réactivant la synchro, la matrice d\'équipe remplace votre copie.</p>';
+  } else if (st === 'connecting') {
+    body = '<p class="note">Connexion à la matrice d\'équipe…</p>';
+  } else if (st === 'empty') {
+    body = `<p>Aucune matrice d'équipe pour l'instant. Partagez la vôtre : les coéquipiers qui ouvrent cette page la verront en direct, et ceux qui en ont le droit pourront la compléter.</p>
+      <div class="row"><button class="btn primary" id="sh-share">Partager ma matrice avec l'équipe</button></div>`;
+  } else if (st === 'live') {
+    body = `<p><span class="chip best">synchronisée</span> Chaque modification (cases, noms, référentiel) est enregistrée pour toute l'équipe et apparaît en direct chez les coéquipiers qui ont la page ouverte.${when ? ` Dernière modification : ${esc(when)}.` : ''}</p>`;
+  } else if (st === 'readonly') {
+    body = '<p><span class="chip">lecture seule</span> Vous voyez la matrice d\'équipe en direct, mais vous n\'avez pas le droit de la modifier. Vos changements restent sur cet appareil et sont remplacés par ceux de l\'équipe.</p>';
+  } else {
+    body = `<p class="warn">La matrice d'équipe est injoignable pour le moment (${esc(shared.error?.code ?? 'erreur')}). Vos modifications restent sur cet appareil.</p>`;
+  }
+  const toggle = st !== 'empty' || !shared.enabled
+    ? `<label class="row" style="gap:6px"><input type="checkbox" id="sh-on" ${shared.enabled ? 'checked' : ''}> Synchroniser avec la matrice d'équipe</label>`
+    : '';
+  return `<section class="panel" id="shared-panel"><h2>Matrice d'équipe</h2>${body}${toggle}
+    <p class="note">La matrice (cases, noms, référentiel) est commune. Le pairing en cours reste propre à chaque appareil.</p></section>`;
+}
+
+function bindShared() {
+  $('#sh-share')?.addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    await shared.shareMine();
+  });
+  $('#sh-on')?.addEventListener('change', (e) => shared.setEnabled(e.target.checked));
+}
+
+function refreshSharedPanel() {
+  const panel = $('#shared-panel');
+  if (!panel) { if (tab === 'matrix' && !isEditing()) render(); return; }
+  panel.outerHTML = sharedPanel();
+  bindShared();
+}
+
+function isEditing() {
+  const a = document.activeElement;
+  return !!a && $('#app')?.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
+}
+
+// Updates the matrix grid in place (keeps the focused input untouched).
+function patchMatrixDom() {
+  const l = cfg.sameLayouts ? 0 : editLayout;
+  const active = document.activeElement;
+  $$('input[data-cell]').forEach((inp) => {
+    const [i, j] = inp.dataset.cell.split(',').map(Number);
+    const v = cfg.grids[l]?.[i]?.[j] ?? '';
+    if (inp !== active && inp.value !== v) inp.value = v;
+    inp.parentElement.style.background = cellColor(inp.value);
+    inp.parentElement.title = cellTitle(inp.value);
+  });
+  $$('input[data-us]').forEach((inp) => { if (inp !== active) inp.value = cfg.us[Number(inp.dataset.us)] ?? ''; });
+  $$('input[data-them]').forEach((inp) => { if (inp !== active) inp.value = cfg.them[Number(inp.dataset.them)] ?? ''; });
+  if (selCell && !$('#cell-editor')?.contains(active)) refreshCellEditor();
+}
+
+function applyRemoteMatrix(part) {
+  const sizeChanged = part.n !== cfg.n || part.sameLayouts !== cfg.sameLayouts;
+  cfg = { ...cfg, ...part, example: false };
+  if (live.state.n !== cfg.n) { resetPairing(); selCell = null; }
+  save();
+  if (tab === 'matrix') {
+    if (sizeChanged || !isEditing()) render();
+    else patchMatrixDom();
+  } else if (tab === 'pairing') {
+    render();
+  }
+}
+
+async function initShared() {
+  if (typeof window.claude?.use !== 'function') return;
+  let db = null;
+  try { db = await window.claude.use('db'); } catch { db = null; }
+  if (!db) return;
+  shared = new SharedMatrix(db, {
+    getLocal: () => cfg,
+    applyRemote: applyRemoteMatrix,
+    onStatus: () => { if (tab === 'matrix') refreshSharedPanel(); },
+  });
+  try { shared.start(); } catch { shared = null; }
+}
+
+async function copyText(text, msg, ta) {
+  try {
+    await navigator.clipboard.writeText(text);
+    msg.textContent = 'Copié. Collez-le dans Google Sheets (Ctrl+V).';
+  } catch {
+    ta.value = text;
+    ta.hidden = false;
+    ta.select();
+    msg.textContent = 'Texte sélectionné ci-dessous : copiez-le avec Ctrl+C.';
+  }
 }
 
 function bindMatrix() {
@@ -780,11 +899,14 @@ function bindMatrix() {
       cfg = { ...exampleConfig(c.n), ...c };
       if (!Array.isArray(cfg.codes)) cfg.codes = defaultCodes();
       cfg.swing = { ...DEFAULT_SWING, ...cfg.swing };
-      resetPairing(); render();
+      resetPairing(); shared?.localChanged(); render();
       $('#cfg-msg').textContent = 'Configuration chargée.';
     } catch (err) { $('#cfg-msg').textContent = `Lecture impossible : ${err.message}`; }
   });
-  $('#cfg-example').addEventListener('click', () => { cfg = exampleConfig(cfg.n); resetPairing(); render(); });
+  $('#cfg-example').addEventListener('click', () => { cfg = exampleConfig(cfg.n); resetPairing(); shared?.localChanged(); render(); });
+  $('#ex-global').addEventListener('click', () => copyText(toGlobalTsv(cfg), $('#ex-msg'), $('#ex-text')));
+  $('#ex-values').addEventListener('click', () => copyText(toValuesTsv(cfg), $('#ex-msg'), $('#ex-text')));
+  bindShared();
 }
 
 // ----------------------------------------------------------- method view
@@ -827,3 +949,4 @@ function methodView() {
 
 $$('nav.tabs button').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; render(); }));
 render();
+initShared();

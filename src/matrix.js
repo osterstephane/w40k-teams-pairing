@@ -1,34 +1,137 @@
 // Parsing of a matchup matrix pasted from a spreadsheet (Google Sheets / Excel).
 //
-// Accepted layout: our players in rows, their players in columns, optional
-// header row / column with names. Separators: tab, ';' or ','.
-// Cell formats: "12", "12,5", "12±3", "12+-3", "12 (3)"  -> mean [± sd].
+// Two layouts are recognised:
+//  - square grid: our players in rows, their players in columns, optional
+//    header row / column with names;
+//  - "one row per layout": a header row with a "Layout" column, then for each
+//    of our players three rows "Layout A", "Layout B", "Layout C".
+// Separators: tab (Google Sheets copy), ';' or ','. Quoted multi-line cells
+// (as produced by Google Sheets for cells with line breaks) are supported.
+//
+// Cell formats: "12", "12,5", "12±3", "12+-3", "12 (3)" -> BP mean [± sd],
+// or a code from the team's reference table (e.g. "WIN", "p_LOSE", "GAMBLE").
 
 const CELL = /^\s*([+-]?\d+(?:[.,]\d+)?)\s*(?:(?:±|\+-|\+\/-)\s*(\d+(?:[.,]\d+)?)|\(\s*(\d+(?:[.,]\d+)?)\s*\))?\s*$/;
 
-export function parseCell(text) {
+// Default reference table ("Référentiel des estimés"). Centres come from the
+// team's sheet; standard deviations are our reading of its risk notes
+// ("faible risque", "variance faible", "forte variance") and are editable.
+export const DEFAULT_CODES = [
+  { code: 'FACILE', mean: 17, sd: 3, label: 'Match très favorable (15–20)' },
+  { code: 'WIN', mean: 14, sd: 3, label: 'Match positif (13–15)' },
+  { code: 'p_WIN', mean: 12, sd: 3, label: 'Léger avantage (11–13)' },
+  { code: 'DRAW', mean: 10, sd: 2.5, label: 'Match équilibré (9–11)' },
+  { code: 'p_LOSE', mean: 8, sd: 3, label: 'Léger désavantage (7–9)' },
+  { code: 'LOSE', mean: 6, sd: 3, label: 'Match négatif (5–7)' },
+  { code: 'ALED', mean: 3, sd: 3, label: 'Match très défavorable (0–5)' },
+  { code: 'GAMBLE', mean: 10, sd: 5, label: 'Match très volatil (5–15)' },
+];
+
+// Codes meaning "no estimate yet".
+const MISSING_CODES = new Set(['SAISPO', 'SAIS-PO', '?', '-', '—']);
+
+export function normaliseCode(text) {
+  return String(text ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toUpperCase().replace(/\s+/g, '_');
+}
+
+export function isMissingCode(text) {
+  const c = normaliseCode(text);
+  return MISSING_CODES.has(c) || MISSING_CODES.has(c.replace(/-/g, ''));
+}
+
+// Returns { value, sd, code? , bp? } or null. Code cells are already in BP.
+export function parseCell(text, codes = DEFAULT_CODES) {
   if (text == null) return null;
   const m = CELL.exec(String(text));
-  if (!m) return null;
-  const num = (s) => (s == null ? null : parseFloat(s.replace(',', '.')));
-  return { value: num(m[1]), sd: num(m[2] ?? m[3]) };
+  if (m) {
+    const num = (s) => (s == null ? null : parseFloat(s.replace(',', '.')));
+    return { value: num(m[1]), sd: num(m[2] ?? m[3]) };
+  }
+  const key = normaliseCode(text);
+  if (!key) return null;
+  const hit = codes.find((c) => normaliseCode(c.code) === key);
+  return hit ? { value: hit.mean, sd: hit.sd, code: hit.code, bp: true } : null;
 }
 
-function splitLine(line, sep) {
-  return line.split(sep).map((c) => c.trim());
+// RFC-4180-ish parser: handles quoted fields containing separators, quotes and
+// line breaks.
+export function parseDelimited(text, sep) {
+  const rows = [];
+  let row = [], field = '', i = 0, quoted = false;
+  text = text.replace(/\r\n?/g, '\n');
+  while (i < text.length) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+        quoted = false; i++; continue;
+      }
+      field += ch; i++; continue;
+    }
+    if (ch === '"' && field === '') { quoted = true; i++; continue; }
+    if (ch === sep) { row.push(field); field = ''; i++; continue; }
+    if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+    field += ch; i++;
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows.map((r) => r.map((c) => c.trim())).filter((r) => r.some((c) => c !== ''));
 }
 
-export function parseMatrix(text) {
-  const lines = text.replace(/\r/g, '').split('\n').filter((l) => l.trim() !== '');
-  if (!lines.length) throw new Error('Matrice vide');
-  const sep = text.includes('\t') ? '\t' : text.includes(';') ? ';' : ',';
-  let grid = lines.map((l) => splitLine(l, sep));
-  const isNum = (c) => parseCell(c) !== null;
+function detectSeparator(text) {
+  return text.includes('\t') ? '\t' : text.includes(';') ? ';' : ',';
+}
 
-  const headerRow = grid[0].slice(1).some((c) => c !== '' && !isNum(c));
+// "Joueur 1\nÀ renseigner" -> "Joueur 1"; "Adversaire 2\nOrks" -> "Orks".
+export function cleanName(text, fallback) {
+  const lines = String(text ?? '').split('\n').map((l) => l.trim()).filter(Boolean);
+  const useful = lines.filter((l) => !/^[àa] renseigner$/i.test(l));
+  if (!useful.length) return fallback;
+  return useful.length > 1 ? useful.slice(1).join(' ') : useful[0];
+}
+
+const LAYOUT_ROW = /^layout\s*([abc])$/i;
+
+function parseLayoutRows(grid, codes) {
+  const hIdx = grid.findIndex((r) => r.some((c) => /^layout$/i.test(c)));
+  const header = hIdx >= 0 ? grid[hIdx] : null;
+  let layoutCol = header ? header.findIndex((c) => /^layout$/i.test(c)) : -1;
+  if (layoutCol < 0) {
+    const first = grid.find((r) => r.some((c) => LAYOUT_ROW.test(c)));
+    layoutCol = first.findIndex((c) => LAYOUT_ROW.test(c));
+  }
+  const nameCol = layoutCol - 1;
+  const rows = grid.slice(hIdx + 1).filter((r) => LAYOUT_ROW.test(r[layoutCol] ?? ''));
+  const players = [];
+  const byPlayer = new Map();
+  let lastName = '';
+  for (const r of rows) {
+    const raw = nameCol >= 0 && r[nameCol] ? r[nameCol] : lastName;
+    lastName = raw;
+    if (!byPlayer.has(raw)) { byPlayer.set(raw, [null, null, null]); players.push(raw); }
+    const l = 'abc'.indexOf(LAYOUT_ROW.exec(r[layoutCol])[1].toLowerCase());
+    byPlayer.get(raw)[l] = r.slice(layoutCol + 1);
+  }
+  const n = players.length;
+  const width = Math.max(n, ...rows.map((r) => r.length - layoutCol - 1));
+  const nCols = header ? Math.min(width, header.length - layoutCol - 1) : width;
+  const colNames = Array.from({ length: nCols }, (_, j) => cleanName(header?.[layoutCol + 1 + j], `Eux ${j + 1}`));
+  const rowNames = players.map((p, i) => cleanName(p, `Nous ${i + 1}`));
+  const raws = [0, 1, 2].map((l) => players.map((p) => Array.from({ length: nCols }, (_, j) => byPlayer.get(p)[l]?.[j] ?? '')));
+  const layouts = raws.map((g) => ({ rowNames, colNames, raw: g, cells: g.map((row) => row.map((c) => parseCell(c, codes))) }));
+  return { rowNames, colNames, layouts, raw: raws[0], cells: layouts[0].cells };
+}
+
+export function parseMatrix(text, codes = DEFAULT_CODES) {
+  if (!text.trim()) throw new Error('Matrice vide');
+  let grid = parseDelimited(text, detectSeparator(text));
+  if (!grid.length) throw new Error('Matrice vide');
+  if (grid.some((r) => r.some((c) => LAYOUT_ROW.test(c)))) return parseLayoutRows(grid, codes);
+
+  const isVal = (c) => parseCell(c, codes) !== null || isMissingCode(c);
+  const headerRow = grid[0].slice(1).some((c) => c !== '' && !isVal(c));
   let colNames = null;
   if (headerRow) { colNames = grid[0]; grid = grid.slice(1); }
-  const headerCol = grid.some((r) => r[0] !== '' && !isNum(r[0]));
+  const headerCol = grid.some((r) => r[0] !== '' && !isVal(r[0]));
   let rowNames = null;
   if (headerCol) {
     rowNames = grid.map((r) => r[0]);
@@ -36,11 +139,12 @@ export function parseMatrix(text) {
     if (colNames) colNames = colNames.slice(1);
   }
   const nCols = Math.max(...grid.map((r) => r.length));
-  const cells = grid.map((r) => Array.from({ length: nCols }, (_, j) => parseCell(r[j])));
+  const raw = grid.map((r) => Array.from({ length: nCols }, (_, j) => r[j] ?? ''));
   return {
-    rowNames: rowNames ?? cells.map((_, i) => `Nous ${i + 1}`),
-    colNames: (colNames ?? Array.from({ length: nCols }, (_, j) => `Eux ${j + 1}`)).slice(0, nCols),
-    cells,
+    rowNames: (rowNames ?? raw.map((_, i) => `Nous ${i + 1}`)).map((s, i) => cleanName(s, `Nous ${i + 1}`)),
+    colNames: (colNames ?? Array.from({ length: nCols }, (_, j) => `Eux ${j + 1}`)).slice(0, nCols).map((s, j) => cleanName(s, `Eux ${j + 1}`)),
+    raw,
+    cells: raw.map((r) => r.map((c) => parseCell(c, codes))),
   };
 }
 
@@ -66,6 +170,7 @@ export function sdToBp(sd, scale) {
 
 // Builds engine inputs mu[l][a][b], sd[l][a][b] from up to three parsed layout
 // matrices (missing layouts fall back to the first one) and a default sd.
+// Code cells are already in BP and bypass the numeric scale.
 export function buildModel(parsedByLayout, n, scale, defaultSd) {
   const base = parsedByLayout.find((p) => p);
   if (!base) throw new Error('Aucune matrice');
@@ -77,10 +182,10 @@ export function buildModel(parsedByLayout, n, scale, defaultSd) {
     for (let a = 0; a < n; a++) {
       mu[l].push([]); sd[l].push([]);
       for (let b = 0; b < n; b++) {
-        const c = p.cells[a]?.[b] ?? base.cells[a]?.[b] ?? null;
+        const c = p.cells[a]?.[b] ?? null;
         if (!c) missing.push({ layout: l, a, b });
-        mu[l][a].push(c ? toBp(c.value, scale) : 10);
-        sd[l][a].push(c && c.sd != null ? sdToBp(c.sd, scale) : defaultSd);
+        mu[l][a].push(c ? (c.bp ? Math.max(0, Math.min(20, c.value)) : toBp(c.value, scale)) : 10);
+        sd[l][a].push(c && c.sd != null ? (c.bp ? c.sd : sdToBp(c.sd, scale)) : defaultSd);
       }
     }
   }

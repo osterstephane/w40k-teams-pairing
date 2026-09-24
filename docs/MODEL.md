@@ -26,6 +26,23 @@ Champion System : le dernier joueur de chaque équipe, même layout que les refu
 - Les parties sont supposées indépendantes, donc le total de l'équipe suit approximativement N(Σmu, Σsd²). Avec 8 parties bornées à 0–20, l'approximation normale est raisonnable.
 - Victoire si notre total ≥ 10n + Y/2, défaite si ≤ 10n − Y/2, nul sinon (Y = écart requis). Une correction de continuité de 0,5 BP est appliquée, car les BP sont entiers.
 
+## Référentiel des estimés
+
+Les codes de la matrice d'équipe sont convertis en (centre, écart-type) en BP. Centres : ceux du tableur de l'équipe. Écarts-types par défaut : **proposition de l'outil**, à ajuster dans l'onglet Matrice. Ils traduisent les mentions du tableur (« faible risque », « variance faible », « forte variance ») :
+
+| Code | Plage BP | Centre | Écart-type par défaut |
+|---|---|---|---|
+| FACILE | 15–20 | 17 | 3 |
+| WIN | 13–15 | 14 | 3 |
+| p_WIN | 11–13 | 12 | 3 |
+| DRAW | 9–11 | 10 | 2,5 |
+| p_LOSE | 7–9 | 8 | 3 |
+| LOSE | 5–7 | 6 | 3 |
+| ALED | 0–5 | 3 | 3 |
+| GAMBLE | 5–15 | 10 | 5 |
+
+`SAIS-PÔ` (estimation manquante) est compté comme DRAW (10 BP, incertitude par défaut) et signalé dans l'interface.
+
 ## Objectif
 
 ```
@@ -56,6 +73,6 @@ Les stratégies mixtes sont réelles : quand un choix fixe se fait contrer, la b
 Pairing complet (Node 22, un cœur) :
 
 - 6 joueurs : environ 0,1 s ;
-- 8 joueurs : environ 20 s en standard, environ 12 s en mode rapide.
+- 8 joueurs : environ 20 s en standard, environ 12 s en mode rapide (compter jusqu'à 40 s dans un navigateur).
 
 Le calcul n'a lieu qu'une fois par matrice. Les étapes suivantes réutilisent le cache.

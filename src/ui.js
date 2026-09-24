@@ -1,5 +1,5 @@
 // User interface (vanilla JS, no framework).
-import { parseCell, parseMatrix, buildModel, toBp } from './matrix.js';
+import { parseCell, parseMatrix, buildModel, toBp, DEFAULT_CODES, isMissingCode } from './matrix.js';
 import { initialState, setDefenders, setAttackers, setChoices, setLayouts } from './pairing.js';
 import { MODULES_BY_SIZE, thresholds, LAYOUTS, layoutForRound } from './rules.js';
 import { createEngine } from './engine.js';
@@ -31,12 +31,11 @@ function exampleConfig(n = 6) {
   let seed = 17;
   const r = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
   const base = Array.from({ length: n }, () => Array.from({ length: n }, () => Math.round(4 + r() * 12)));
+  const toCode = (v) => (v >= 15 ? 'FACILE' : v >= 13 ? 'WIN' : v >= 11 ? 'p_WIN' : v >= 9 ? 'DRAW' : v >= 7 ? 'p_LOSE' : v >= 5 ? 'LOSE' : 'ALED');
   const grids = [0, 1, 2].map((l) => base.map((row) => row.map((v) => {
     const x = l === 0 ? v : Math.max(0, Math.min(20, v + Math.round((r() - 0.5) * 6)));
-    return String(x);
+    return r() < 0.06 ? 'GAMBLE' : toCode(x);
   })));
-  grids[0][0][1] += '±6';
-  grids[0][2][3] += '±2';
   return {
     version: 1, example: true, n, round: 1,
     us: EX_US.slice(0, n), them: EX_THEM.slice(0, n),
@@ -44,7 +43,12 @@ function exampleConfig(n = 6) {
     scale: { type: 'bp', inMin: -2, inMax: 2, outMin: 4, outMax: 16 },
     objective: { marginWeight: 0, drawValue: 0.5 },
     precision: 'standard',
+    codes: defaultCodes(),
   };
+}
+
+function defaultCodes() {
+  return DEFAULT_CODES.map((c) => ({ ...c }));
 }
 
 function resize(c, n) {
@@ -71,6 +75,7 @@ function save() {
 
 const saved = load();
 let cfg = saved?.cfg ?? exampleConfig(6);
+if (!Array.isArray(cfg.codes)) cfg.codes = defaultCodes();
 let live = saved?.live ?? { history: [], state: initialState(cfg.n, cfg.round) };
 if (live.state.n !== cfg.n) live = { history: [], state: initialState(cfg.n, cfg.round) };
 let tab = 'pairing';
@@ -83,7 +88,7 @@ const themPair = (p) => `${them(p[0])} + ${them(p[1])}`;
 
 function currentModel() {
   const parsed = [0, 1, 2].map((l) => ({
-    cells: (cfg.sameLayouts ? cfg.grids[0] : cfg.grids[l]).map((row) => row.map((v) => parseCell(v))),
+    cells: (cfg.sameLayouts ? cfg.grids[0] : cfg.grids[l]).map((row) => row.map((v) => parseCell(v, cfg.codes))),
   }));
   return buildModel(parsed, cfg.n, cfg.scale, Number(cfg.defaultSd) || 4);
 }
@@ -263,7 +268,7 @@ function pairingView() {
         </div>
         ${timeline()}
         ${cfg.example ? '<p class="note">Données d\'exemple. Remplacez-les dans l\'onglet Matrice.</p>' : ''}
-        ${ec.missing ? `<p class="warn">${ec.missing} case(s) de matrice vide(s) ou illisible(s), comptée(s) à 10 BP.</p>` : ''}
+        ${ec.missing ? `<p class="warn">${ec.missing} case(s) de matrice à estimer (vides, SAIS-PÔ ou illisibles), comptées comme DRAW (10 BP) en attendant.</p>` : ''}
       </section>
       ${main}
     </div>
@@ -477,9 +482,13 @@ function alertInline(msg) {
 // ----------------------------------------------------------- matrix view
 
 function cellColor(raw) {
-  const c = parseCell(raw);
-  if (!c) return raw && String(raw).trim() ? 'color-mix(in srgb, var(--bad) 30%, var(--surface))' : 'var(--surface)';
-  const bp = toBp(c.value, cfg.scale);
+  const c = parseCell(raw, cfg.codes);
+  if (!c) {
+    if (!raw || !String(raw).trim() || isMissingCode(raw)) return 'var(--surface-2)';
+    return 'color-mix(in srgb, var(--bad) 30%, var(--surface))';
+  }
+  if (c.code === 'GAMBLE' || (c.sd ?? 0) >= 5) return 'color-mix(in srgb, #8a63c9 35%, var(--surface))';
+  const bp = c.bp ? c.value : toBp(c.value, cfg.scale);
   const d = (bp - 10) / 10;
   const k = Math.min(1, Math.abs(d)) * 50;
   return `color-mix(in srgb, ${d >= 0 ? 'var(--good)' : 'var(--bad)'} ${k.toFixed(0)}%, var(--surface))`;
@@ -503,7 +512,7 @@ function matrixView() {
         <label class="field"><span>Valeur d'un nul</span>${select('p-draw', [[0.5, 'Demi-victoire (barème 3/2/1)'], [0, 'Nul = défaite (il faut gagner)'], [1, 'Nul = victoire (un nul suffit)']], cfg.objective.drawValue)}</label>
       </div>
       <div class="row">
-        <label class="field"><span>Incertitude par défaut (écart-type en BP)</span><input id="p-sd" type="number" min="0.5" max="10" step="0.5" value="${cfg.defaultSd}" style="width:90px"></label>
+        <label class="field"><span>Incertitude des BP saisis sans ± (écart-type)</span><input id="p-sd" type="number" min="0.5" max="10" step="0.5" value="${cfg.defaultSd}" style="width:90px"></label>
         <label class="field"><span>Précision du calcul</span>${select('p-prec', [['standard', 'Standard'], ['fast', 'Rapide (8 joueurs ≈ 2× plus vite)']], cfg.precision)}</label>
         <label class="field"><span>Format des valeurs</span>${select('p-scale', [['bp', 'BP attendus (0 à 20)'], ['linear', 'Autre échelle (conversion linéaire)']], cfg.scale.type)}</label>
         ${lin ? `<label class="field"><span>Valeur min → BP</span><span class="row" style="gap:4px"><input id="s-inmin" type="number" value="${cfg.scale.inMin}" style="width:64px">→<input id="s-outmin" type="number" value="${cfg.scale.outMin}" style="width:64px"></span></label>
@@ -519,14 +528,25 @@ function matrixView() {
           ${cfg.sameLayouts ? '' : `<div class="layout-tabs" role="tablist">${[0, 1, 2].map((x) => `<button role="tab" data-layout="${x}" aria-selected="${x === editLayout}">Layout ${LAYOUTS[x]}</button>`).join('')}</div>`}
         </div>
       </div>
-      <p class="note">Chaque case : BP attendus pour notre joueur (ligne) contre le leur (colonne). Ajoutez l'incertitude avec ± : <span class="mono">12±6</span> pour un matchup incertain, <span class="mono">12±2</span> pour un matchup bien connu. Sans ±, l'incertitude par défaut s'applique.</p>
+      <p class="note">Chaque case : un code du référentiel (<span class="mono">${cfg.codes.map((c) => esc(c.code)).join(', ')}</span>) ou des BP attendus pour notre joueur (ligne) contre le leur (colonne). En BP, ajoutez l'incertitude avec ± : <span class="mono">12±6</span> pour un matchup incertain, <span class="mono">12±2</span> pour un matchup bien connu.</p>
+      <datalist id="codes-list">${cfg.codes.map((c) => `<option value="${esc(c.code)}">${esc(c.label ?? '')}</option>`).join('')}<option value="SAIS-PÔ">Estimation manquante</option></datalist>
       <div class="tablewrap"><table class="editor"><thead><tr><th></th>${cfg.them.map((t, j) => `<th><input class="name" data-them="${j}" value="${esc(t)}" aria-label="Adversaire ${j + 1}"></th>`).join('')}</tr></thead>
-      <tbody>${g.map((row, i) => `<tr><th><input class="name" data-us="${i}" value="${esc(cfg.us[i])}" aria-label="Joueur ${i + 1}"></th>${row.map((v, j) => `<td style="background:${cellColor(v)}"><input data-cell="${i},${j}" value="${esc(v)}" aria-label="${esc(cfg.us[i])} contre ${esc(cfg.them[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <tbody>${g.map((row, i) => `<tr><th><input class="name" data-us="${i}" value="${esc(cfg.us[i])}" aria-label="Joueur ${i + 1}"></th>${row.map((v, j) => `<td style="background:${cellColor(v)}"><input data-cell="${i},${j}" list="codes-list" value="${esc(v)}" aria-label="${esc(cfg.us[i])} contre ${esc(cfg.them[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Référentiel des estimés</h2>
+      <p class="note">Chaque code est converti en BP attendus (centre) et en incertitude (écart-type en BP). Plus l'écart-type est grand, plus le résultat de la partie est imprévisible. Les centres viennent de votre tableur. Les écarts-types sont une proposition à ajuster.</p>
+      <div class="tablewrap"><table class="codes"><thead><tr><th>Code</th><th>Lecture</th><th class="num">Centre (BP)</th><th class="num">Écart-type</th></tr></thead>
+      <tbody>${cfg.codes.map((c, i) => `<tr><td class="mono">${esc(c.code)}</td><td class="muted">${esc(c.label ?? '')}</td>
+        <td class="num"><input class="inp" type="number" min="0" max="20" step="0.5" data-code-mean="${i}" value="${c.mean}" style="width:72px"></td>
+        <td class="num"><input class="inp" type="number" min="0.5" max="10" step="0.5" data-code-sd="${i}" value="${c.sd}" style="width:72px"></td></tr>`).join('')}</tbody></table></div>
+      <div class="row"><button class="btn small" id="codes-reset">Revenir aux valeurs par défaut</button></div>
     </section>
 
     <section class="panel">
       <h2>Importer depuis un tableur</h2>
-      <p class="note">Dans Google Sheets, sélectionnez la matrice (avec ou sans les noms en première ligne et première colonne), copiez, puis collez ici.</p>
+      <p class="note">Dans Google Sheets, sélectionnez la matrice et copiez-la, puis collez-la ici. Deux formats sont reconnus : la <strong>Matrice globale</strong> (une ligne par joueur et par layout, colonne « Layout » avec Layout A / B / C, en-tête compris), ou une grille carrée simple (noms en première ligne et première colonne, facultatifs).</p>
       <textarea id="paste" placeholder="Collez ici les cellules copiées"></textarea>
       <div class="row">
         <label class="field"><span>Destination</span>${select('paste-target', [['all', 'Les 3 layouts'], ['0', 'Layout A'], ['1', 'Layout B'], ['2', 'Layout C']], 'all')}</label>
@@ -584,26 +604,34 @@ function bindMatrix() {
     changed();
   }));
 
+  $$('input[data-code-mean]').forEach((inp) => inp.addEventListener('change', () => {
+    cfg.codes[Number(inp.dataset.codeMean)].mean = Math.max(0, Math.min(20, Number(inp.value) || 0)); changed(); render();
+  }));
+  $$('input[data-code-sd]').forEach((inp) => inp.addEventListener('change', () => {
+    cfg.codes[Number(inp.dataset.codeSd)].sd = Math.max(0.5, Number(inp.value) || 3); changed(); render();
+  }));
+  $('#codes-reset').addEventListener('click', () => { cfg.codes = defaultCodes(); changed(); render(); });
+
   $('#paste-go').addEventListener('click', () => {
     const msg = $('#paste-msg');
     try {
-      const p = parseMatrix($('#paste').value);
+      const p = parseMatrix($('#paste').value, cfg.codes);
       const n = p.cells.length;
-      if (n < 3 || n > 8 || p.cells.some((r) => r.length !== n)) {
+      if (n < 3 || n > 8 || p.cells.some((r) => r.length !== n) || p.colNames.length !== n) {
         throw new Error(`La matrice collée fait ${n} × ${p.cells[0]?.length ?? 0}. Il faut une matrice carrée de 3 à 8 joueurs.`);
       }
       if (n !== cfg.n) { resize(cfg, n); resetPairing(); }
       const target = $('#paste-target').value;
-      const text = (c) => (c ? `${c.value}${c.sd != null ? `±${c.sd}` : ''}` : '');
-      const grid = p.cells.map((row) => row.map(text));
-      if (target === 'all') { cfg.grids = [0, 1, 2].map(() => grid.map((r) => [...r])); cfg.sameLayouts = true; }
-      else { cfg.grids[Number(target)] = grid; cfg.sameLayouts = false; editLayout = Number(target); }
+      const copy = (g) => g.map((r) => [...r]);
+      if (p.layouts) { cfg.grids = p.layouts.map((x) => copy(x.raw)); cfg.sameLayouts = false; editLayout = 0; }
+      else if (target === 'all') { cfg.grids = [0, 1, 2].map(() => copy(p.raw)); cfg.sameLayouts = true; }
+      else { cfg.grids[Number(target)] = copy(p.raw); cfg.sameLayouts = false; editLayout = Number(target); }
       if (!p.rowNames[0].startsWith('Nous ')) cfg.us = p.rowNames;
       if (!p.colNames[0].startsWith('Eux ')) cfg.them = p.colNames;
-      const bad = p.cells.flat().filter((c) => !c).length;
+      const bad = (p.layouts ?? [p]).flatMap((x) => x.cells.flat()).filter((c) => !c).length;
       changed();
       render();
-      $('#paste-msg').textContent = `Matrice ${n} × ${n} importée${bad ? `, ${bad} case(s) illisible(s) à vérifier` : ''}.`;
+      $('#paste-msg').textContent = `Matrice ${n} × ${n}${p.layouts ? ' (layouts A, B et C)' : ''} importée${bad ? `, ${bad} case(s) à estimer ou à vérifier` : ''}.`;
     } catch (err) {
       msg.textContent = String(err.message ?? err);
     }
@@ -621,6 +649,7 @@ function bindMatrix() {
       const c = JSON.parse($('#cfg-json').value);
       if (!c.grids || !MODULES_BY_SIZE[c.n]) throw new Error('Configuration invalide.');
       cfg = { ...exampleConfig(c.n), ...c };
+      if (!Array.isArray(cfg.codes)) cfg.codes = defaultCodes();
       resetPairing(); render();
       $('#cfg-msg').textContent = 'Configuration chargée.';
     } catch (err) { $('#cfg-msg').textContent = `Lecture impossible : ${err.message}`; }

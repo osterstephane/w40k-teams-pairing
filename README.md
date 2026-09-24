@@ -11,12 +11,22 @@ Aide à la décision pour le **pairing des matchs par équipes de Warhammer 40,0
 
 ## Utilisation
 
-Ouvrez `dist/index.html` dans un navigateur. Le fichier est autonome et fonctionne hors ligne. Les données restent dans votre navigateur.
+En ligne (une fois GitHub Pages activé) : https://osterstephane.github.io/w40k-teams-pairing/
+
+Sans connexion : ouvrez `dist/index.html` dans un navigateur. Le fichier est autonome et fonctionne hors ligne. Les données restent dans votre navigateur.
 
 1. **Matrice** : taille d'équipe, ronde, objectif, puis saisissez ou collez la matrice depuis Google Sheets (copier/coller des cellules, noms compris).
 2. **Pairing** : suivez les étapes. À chaque étape, saisissez les choix révélés. L'outil recalcule à partir de la situation réelle.
 
-Formats de cellule acceptés : `12`, `12,5`, `12±4` (valeur ± incertitude en BP), `12 (4)`. Une autre échelle (par exemple -2 à +2) peut être convertie linéairement en BP dans les paramètres.
+Formats de cellule acceptés :
+
+- codes du **référentiel des estimés** : `FACILE`, `WIN`, `p_WIN`, `DRAW`, `p_LOSE`, `LOSE`, `ALED`, `GAMBLE`. `SAIS-PÔ` compte comme une estimation manquante. Le centre et l'écart-type de chaque code sont modifiables dans l'onglet Matrice ;
+- BP : `12`, `12,5`, `12±4` (valeur ± incertitude en BP), `12 (4)`. Une autre échelle (par exemple -2 à +2) peut être convertie linéairement en BP dans les paramètres.
+
+Import depuis Google Sheets par copier-coller, deux formats reconnus :
+
+- **Matrice globale** : une ligne par joueur et par layout, avec une colonne « Layout » (Layout A / B / C) et les adversaires en colonnes. On peut coller tout l'onglet, titre compris ; les cellules sur deux lignes (« Joueur 1 / À renseigner ») sont gérées ;
+- grille carrée simple (nos joueurs en lignes, les leurs en colonnes).
 
 ## Pairing par taille d'équipe (Teams Event Companion, section 2)
 
@@ -40,6 +50,10 @@ Le critère est réglable dans l'onglet Matrice :
 - **Valeur d'un nul** : 0 si seule la victoire compte (il faut gagner pour rester en tête), 1 si un nul suffit.
 
 Détails du modèle et simplifications : [docs/MODEL.md](docs/MODEL.md).
+
+## Publication GitHub Pages
+
+Settings → Pages → *Build and deployment* : Source « Deploy from a branch », branche `main`, dossier `/ (root)`. Le site sert `index.html` et les modules de `src/` directement, sans étape de build.
 
 ## Développement
 

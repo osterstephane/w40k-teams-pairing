@@ -40,18 +40,25 @@ export function isMissingCode(text) {
 }
 
 // Code cell with an optional swing scenario and uncertainty:
-//   "p_WIN!"   : stable p_WIN, with a chance to punish an opponent's mistake
-//                and reach a big score ("upside")
-//   "p_WIN?"   : p_WIN, with a risk of being punished ("downside")
-//   "p_WIN!30" : same with an explicit chance (30 %); "%" is optional
-//   "WIN±5"    : explicit standard deviation in BP for the base result
-const CODE_CELL = /^\s*(.*?)\s*(?:([!?])\s*(\d{1,2}(?:[.,]\d+)?)?\s*%?)?\s*(?:(?:±|\+-|\+\/-)\s*(\d+(?:[.,]\d+)?))?\s*$/;
+//   "p_WIN!"      : stable p_WIN, with a chance to punish an opponent's mistake
+//                   and reach a big score ("upside")
+//   "p_WIN?"      : p_WIN, with a risk of being punished ("downside")
+//   "p_WIN!40"    : explicit chance (40 %); "%" is optional
+//   "p_WIN!40_20" : explicit chance and score reached (20 BP, i.e. a 20-0)
+//   "p_LOSE?50_3" : 50 % risk of ending at 3 BP
+//   "WIN±5"       : explicit standard deviation in BP for the base result
+const CODE_CELL = /^\s*(.*?)\s*(?:([!?])\s*(\d{1,3}(?:[.,]\d+)?)?\s*%?\s*(?:_\s*(\d{1,2}(?:[.,]\d+)?))?)?\s*(?:(?:±|\+-|\+\/-)\s*(\d+(?:[.,]\d+)?))?\s*$/;
 
 // Defaults for "!" / "?" (editable in the Matrix tab):
 //   chance : probability (%) that the swing happens
-//   high   : BP reached when we punish (sd highSd)
-//   low    : BP left when we get punished (sd lowSd)
-export const DEFAULT_SWING = { chance: 25, high: 18, highSd: 2, low: 3, lowSd: 2 };
+//   high   : BP reached when we punish
+//   low    : BP left when we get punished
+//   spread : sd (BP) of the swing result, reduced near 0 and 20 (a 20-0 is exact)
+export const DEFAULT_SWING = { chance: 25, high: 18, low: 3, spread: 2 };
+
+export function swingSpread(target, spread = DEFAULT_SWING.spread) {
+  return Math.max(0, Math.min(spread, 20 - target, target));
+}
 
 // Mean and sd of a two-outcome game: base N(c, s²) with probability 1 - p,
 // swing N(h, sh²) with probability p (moment matching, see docs/MODEL.md).
@@ -75,18 +82,36 @@ export function parseCell(text, codes = DEFAULT_CODES, options = {}) {
   if (!c || !c[1]) return null;
   const hit = find(c[1]);
   if (!hit) return null;
-  const base = { mean: hit.mean, sd: c[4] != null ? num(c[4]) : hit.sd };
+  const base = { mean: hit.mean, sd: c[5] != null ? num(c[5]) : hit.sd, customSd: c[5] != null };
   if (!c[2]) return { value: base.mean, sd: base.sd, code: hit.code, bp: true };
   const sw = { ...DEFAULT_SWING, ...options.swing };
-  const chance = c[3] != null ? num(c[3]) : sw.chance;
-  if (!(chance >= 0 && chance <= 100)) return null;
   const up = c[2] === '!';
-  const { mean, sd } = swingMoments(base.mean, base.sd, chance / 100, up ? sw.high : sw.low, up ? sw.highSd : sw.lowSd);
+  const chance = c[3] != null ? num(c[3]) : sw.chance;
+  const target = c[4] != null ? num(c[4]) : up ? sw.high : sw.low;
+  if (!(chance >= 0 && chance <= 100) || !(target >= 0 && target <= 20)) return null;
+  const { mean, sd } = swingMoments(base.mean, base.sd, chance / 100, target, swingSpread(target, sw.spread));
   return {
     value: Math.max(0, Math.min(20, mean)), sd,
     code: hit.code, bp: true,
-    swing: { kind: up ? 'punish' : 'punished', chance, base: base.mean, target: up ? sw.high : sw.low },
+    swing: { kind: up ? 'punish' : 'punished', chance, base: base.mean, target },
   };
+}
+
+// Inverse of parseCell for code cells: builds "p_WIN", "p_WIN!", "p_WIN!40_20"...
+// Chance and score are written only when they differ from the defaults.
+export function formatCodeCell({ code, kind = null, chance, target, sd = null }, defaults = DEFAULT_SWING) {
+  const d = { ...DEFAULT_SWING, ...defaults };
+  let out = code;
+  if (kind) {
+    const defTarget = kind === 'punish' ? d.high : d.low;
+    const showTarget = target != null && target !== defTarget;
+    const showChance = showTarget || (chance != null && chance !== d.chance);
+    out += kind === 'punish' ? '!' : '?';
+    if (showChance) out += String(chance ?? d.chance);
+    if (showTarget) out += `_${target}`;
+  }
+  if (sd != null) out += `±${sd}`;
+  return out;
 }
 
 // RFC-4180-ish parser: handles quoted fields containing separators, quotes and

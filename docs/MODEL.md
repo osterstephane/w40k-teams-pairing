@@ -49,9 +49,10 @@ Un joueur peut indiquer qu'un résultat est stable, mais qu'un scénario plus ra
 
 - `p_WIN!` : p_WIN stable, avec une chance de **punir** une erreur adverse et d'aller chercher un gros score ;
 - `WIN?` : WIN, avec un risque de **se faire punir** ;
-- `p_WIN!40` : même chose avec une chance explicite de 40 %.
+- `p_WIN!40` : même chose avec une chance explicite de 40 % ;
+- `p_WIN!40_20` : 40 % de chances de mettre un 20-0 ; `p_LOSE?50_3` : 50 % de risque de ne marquer que 3 BP.
 
-Réglages par défaut (onglet Matrice) : 25 % de chances, 18 ± 2 BP quand on punit, 3 ± 2 BP quand on se fait punir. Ce sont des **choix de l'outil**, à ajuster par l'équipe.
+Réglages par défaut (onglet Matrice) : 25 % de chances, 18 BP quand on punit, 3 BP quand on se fait punir. Ce sont des **choix de l'outil**, à ajuster par l'équipe. Le score du scénario a un écart-type de 2 BP, réduit près des bornes : un 20-0 est un résultat exact (écart-type 0), un score de 1 BP a un écart-type de 1.
 
 La partie a alors deux issues : le résultat du code (probabilité 1 − p) ou le scénario (probabilité p). Le moteur la représente par sa moyenne et son écart-type exacts :
 

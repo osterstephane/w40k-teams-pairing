@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseCell, parseMatrix, toBp, buildModel, parseDelimited, cleanName, isMissingCode, swingMoments } from '../src/matrix.js';
+import { parseCell, parseMatrix, toBp, buildModel, parseDelimited, cleanName, isMissingCode, swingMoments, formatCodeCell } from '../src/matrix.js';
 
 test('cell formats', () => {
   assert.deepEqual(parseCell('12'), { value: 12, sd: null });
@@ -140,7 +140,7 @@ test('swing chance, target and base sd can be set', () => {
   assert.equal(parseCell('p_WIN!40').swing.chance, 40);
   assert.equal(parseCell('p_WIN! 40%').swing.chance, 40);
   assert.equal(parseCell('p_WIN!0').value, 12);
-  const custom = parseCell('DRAW!', undefined, { swing: { chance: 50, high: 20, highSd: 0 } });
+  const custom = parseCell('DRAW!', undefined, { swing: { chance: 50, high: 20 } });
   assert.equal(custom.value, 15);
   const withSd = parseCell('p_WIN±2 ');
   assert.equal(withSd.sd, 2);
@@ -157,4 +157,40 @@ test('invalid swings and removed +/- nuances are rejected', () => {
   assert.equal(parseCell('p_WIN+'), null);
   assert.equal(parseCell('WIN--'), null);
   assert.equal(parseCell('SAIS-PÔ'), null);
+});
+
+test('chance_score syntax: p_WIN!40_20 and p_LOSE?50_3', () => {
+  const up = parseCell('p_WIN!40_20');
+  assert.deepEqual(up.swing, { kind: 'punish', chance: 40, base: 12, target: 20 });
+  // A 20-0 is an exact result: the swing component has no spread.
+  const ref = swingMoments(12, 3, 0.4, 20, 0);
+  assert.ok(Math.abs(up.value - ref.mean) < 1e-12); // 15.2
+  assert.ok(Math.abs(up.sd - ref.sd) < 1e-12);
+  const down = parseCell('p_LOSE?50_3');
+  assert.deepEqual(down.swing, { kind: 'punished', chance: 50, base: 8, target: 3 });
+  assert.ok(Math.abs(down.value - 5.5) < 1e-12);
+  assert.equal(parseCell('p_WIN!_20').swing.chance, 25); // score only, default chance
+  assert.equal(parseCell('p_WIN! 40 % _ 19').swing.target, 19);
+  assert.equal(parseCell('p_WIN!100_20').value, 20);
+});
+
+test('chance_score boundaries', () => {
+  assert.equal(parseCell('p_WIN!40_21'), null);
+  assert.equal(parseCell('p_WIN!101'), null);
+  assert.equal(parseCell('p_WIN!40_'), null);
+  assert.equal(parseCell('p_WIN!40_0').swing.target, 0);
+});
+
+test('formatCodeCell writes only what differs from the defaults and round-trips', () => {
+  assert.equal(formatCodeCell({ code: 'p_WIN' }), 'p_WIN');
+  assert.equal(formatCodeCell({ code: 'p_WIN', kind: 'punish', chance: 25, target: 18 }), 'p_WIN!');
+  assert.equal(formatCodeCell({ code: 'p_WIN', kind: 'punish', chance: 40, target: 18 }), 'p_WIN!40');
+  assert.equal(formatCodeCell({ code: 'p_WIN', kind: 'punish', chance: 40, target: 20 }), 'p_WIN!40_20');
+  assert.equal(formatCodeCell({ code: 'p_WIN', kind: 'punish', chance: 25, target: 20 }), 'p_WIN!25_20');
+  assert.equal(formatCodeCell({ code: 'p_LOSE', kind: 'punished', chance: 50, target: 3 }), 'p_LOSE?50');
+  assert.equal(formatCodeCell({ code: 'WIN', sd: 5 }), 'WIN±5');
+  for (const text of ['p_WIN!40_20', 'p_LOSE?50', 'WIN?', 'DRAW!10_15']) {
+    const c = parseCell(text);
+    assert.equal(formatCodeCell({ code: c.code, kind: c.swing.kind, chance: c.swing.chance, target: c.swing.target }), text);
+  }
 });

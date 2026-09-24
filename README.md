@@ -15,12 +15,12 @@ En ligne (une fois GitHub Pages activé) : https://osterstephane.github.io/w40k-
 
 Sans connexion : ouvrez `dist/index.html` dans un navigateur. Le fichier est autonome et fonctionne hors ligne. Les données restent dans votre navigateur.
 
-1. **Matrice** : taille d'équipe, ronde, objectif, puis saisissez ou collez la matrice depuis Google Sheets (copier/coller des cellules, noms compris).
+1. **Matrice** : taille d'équipe, ronde, objectif, puis saisissez ou collez la matrice depuis Google Sheets (copier/coller des cellules, noms compris). Une fois importée, la matrice reste modifiable : cliquez sur une case pour choisir le code et le scénario (stable, peut punir, peut se faire punir, chance, score) avec des boutons, sur un layout ou les trois.
 2. **Pairing** : suivez les étapes. À chaque étape, saisissez les choix révélés. L'outil recalcule à partir de la situation réelle.
 
 Formats de cellule acceptés :
 
-- codes du **référentiel des estimés** : `FACILE`, `WIN`, `p_WIN`, `DRAW`, `p_LOSE`, `LOSE`, `ALED`, `GAMBLE`. `SAIS-PÔ` compte comme une estimation manquante. Le centre et l'écart-type de chaque code sont modifiables dans l'onglet Matrice. Un code peut porter un scénario : `p_WIN!` (« p_WIN stable, mais je peux punir une erreur adverse et aller chercher un gros score »), `WIN?` (« WIN, mais je peux me faire punir »), `p_WIN!40` (chance explicite de 40 %). Il peut aussi recevoir son propre écart-type : `p_WIN±5` ;
+- codes du **référentiel des estimés** : `FACILE`, `WIN`, `p_WIN`, `DRAW`, `p_LOSE`, `LOSE`, `ALED`, `GAMBLE`. `SAIS-PÔ` compte comme une estimation manquante. Le centre et l'écart-type de chaque code sont modifiables dans l'onglet Matrice. Un code peut porter un scénario : `p_WIN!` (« p_WIN stable, mais je peux punir une erreur adverse et aller chercher un gros score »), `WIN?` (« WIN, mais je peux me faire punir »), `p_WIN!40` (chance explicite de 40 %), `p_WIN!40_20` (40 % de chances de mettre un 20-0), `p_LOSE?50_3` (50 % de risque de ne marquer que 3 BP). Il peut aussi recevoir son propre écart-type : `p_WIN±5` ;
 - BP : `12`, `12,5`, `12±4` (valeur ± incertitude en BP), `12 (4)`. Une autre échelle (par exemple -2 à +2) peut être convertie linéairement en BP dans les paramètres.
 
 Import depuis Google Sheets par copier-coller, deux formats reconnus :

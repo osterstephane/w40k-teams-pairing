@@ -1,5 +1,5 @@
 // User interface (vanilla JS, no framework).
-import { parseCell, parseMatrix, buildModel, toBp, DEFAULT_CODES, DEFAULT_SWING, isMissingCode } from './matrix.js';
+import { parseCell, parseMatrix, buildModel, toBp, DEFAULT_CODES, DEFAULT_SWING, isMissingCode, formatCodeCell } from './matrix.js';
 import { initialState, setDefenders, setAttackers, setChoices, setLayouts } from './pairing.js';
 import { MODULES_BY_SIZE, thresholds, LAYOUTS, layoutForRound } from './rules.js';
 import { createEngine } from './engine.js';
@@ -83,6 +83,8 @@ let live = saved?.live ?? { history: [], state: initialState(cfg.n, cfg.round) }
 if (live.state.n !== cfg.n) live = { history: [], state: initialState(cfg.n, cfg.round) };
 let tab = 'pairing';
 let editLayout = 0;
+let selCell = null; // { i, j } cell open in the cell editor
+let ceAll = false; // cell editor: apply to the three layouts
 
 const us = (i) => cfg.us[i] || `Nous ${i + 1}`;
 const them = (j) => cfg.them[j] || `Eux ${j + 1}`;
@@ -511,6 +513,90 @@ function cellTitle(raw) {
   return `${c.code} stable (${c.swing.base} BP), ${what} : ${base}`;
 }
 
+function cellEditor() {
+  if (!selCell) return '<p class="note">Cliquez sur une case de la matrice pour la modifier avec des boutons.</p>';
+  const { i, j } = selCell;
+  const l = cfg.sameLayouts ? 0 : editLayout;
+  const raw = cfg.grids[l][i][j];
+  const c = parseCell(raw, cfg.codes, { swing: cfg.swing });
+  const code = c?.code ?? null;
+  const kind = c?.swing?.kind ?? null;
+  const chance = c?.swing?.chance ?? cfg.swing.chance;
+  const target = c?.swing?.target ?? (kind === 'punished' ? cfg.swing.low : cfg.swing.high);
+  const missing = !c && (!raw || isMissingCode(raw));
+  return `
+    <div class="row" style="justify-content:space-between">
+      <h3>${esc(us(i))} contre ${esc(them(j))}${cfg.sameLayouts ? '' : ` · layout ${LAYOUTS[l]}`}</h3>
+      <span class="note">${esc(cellTitle(raw))}</span>
+    </div>
+    <div class="code-buttons">${cfg.codes.map((k) => `<button type="button" class="codebtn" data-set-code="${esc(k.code)}" aria-pressed="${k.code === code}" style="background:${cellColor(k.code)}" title="${esc(k.label ?? '')}">${esc(k.code)}</button>`).join('')}<button type="button" class="codebtn" data-set-code="SAIS-PÔ" aria-pressed="${missing}">SAIS-PÔ</button></div>
+    ${code ? `<div class="row">
+      <div class="seg" role="group" aria-label="Scénario">${[['', 'Stable'], ['punish', 'Peut punir (!)'], ['punished', 'Peut se faire punir (?)']].map(([k, t]) => `<button type="button" data-set-kind="${k}" aria-pressed="${(kind ?? '') === k}">${t}</button>`).join('')}</div>
+      ${kind ? `<label class="field"><span>Chance (%)</span><input id="ce-chance" type="number" min="0" max="100" step="5" value="${chance}" style="width:80px"></label>
+      <label class="field"><span>${kind === 'punish' ? 'Score visé (BP)' : 'Score restant (BP)'}</span><input id="ce-target" type="number" min="0" max="20" step="1" value="${target}" style="width:80px"></label>` : ''}
+    </div>` : ''}
+    ${cfg.sameLayouts ? '' : `<label class="row" style="gap:6px"><input type="checkbox" id="ce-all" ${ceAll ? 'checked' : ''}> Appliquer aux 3 layouts</label>`}`;
+}
+
+function refreshCellEditor() {
+  const box = $('#cell-editor');
+  if (!box) return;
+  box.innerHTML = cellEditor();
+  bindCellEditor();
+}
+
+function writeSelectedCell(text) {
+  const { i, j } = selCell;
+  const l = cfg.sameLayouts ? 0 : editLayout;
+  const layouts = ceAll && !cfg.sameLayouts ? [0, 1, 2] : [l];
+  for (const x of layouts) cfg.grids[x][i][j] = text;
+  const inp = $(`input[data-cell="${i},${j}"]`);
+  if (inp) {
+    inp.value = text;
+    inp.parentElement.style.background = cellColor(text);
+    inp.parentElement.title = cellTitle(text);
+  }
+  changed();
+  refreshCellEditor();
+}
+
+function bindCellEditor() {
+  if (!selCell) return;
+  const { i, j } = selCell;
+  const current = () => {
+    const raw = cfg.grids[cfg.sameLayouts ? 0 : editLayout][i][j];
+    const c = parseCell(raw, cfg.codes, { swing: cfg.swing });
+    const sdm = /(?:±|\+-|\+\/-)\s*(\d+(?:[.,]\d+)?)\s*$/.exec(String(raw ?? ''));
+    return {
+      code: c?.code ?? null,
+      kind: c?.swing?.kind ?? null,
+      chance: c?.swing?.chance ?? cfg.swing.chance,
+      target: c?.swing?.target ?? null,
+      sd: c?.code && sdm ? Number(sdm[1].replace(',', '.')) : null,
+    };
+  };
+  const write = (st) => writeSelectedCell(formatCodeCell(st, cfg.swing));
+  $$('[data-set-code]').forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.setCode === 'SAIS-PÔ') { writeSelectedCell('SAIS-PÔ'); return; }
+    write({ ...current(), code: b.dataset.setCode });
+  }));
+  $$('[data-set-kind]').forEach((b) => b.addEventListener('click', () => {
+    const st = current();
+    const kind = b.dataset.setKind || null;
+    const target = kind === st.kind ? st.target : kind === 'punished' ? cfg.swing.low : cfg.swing.high;
+    write({ ...st, kind, target });
+  }));
+  $('#ce-chance')?.addEventListener('change', (e) => {
+    const v = Math.max(0, Math.min(100, Math.round(Number(e.target.value))));
+    write({ ...current(), chance: Number.isFinite(v) ? v : cfg.swing.chance });
+  });
+  $('#ce-target')?.addEventListener('change', (e) => {
+    const v = Math.max(0, Math.min(20, Number(e.target.value)));
+    write({ ...current(), target: Number.isFinite(v) ? v : null });
+  });
+  $('#ce-all')?.addEventListener('change', (e) => { ceAll = e.target.checked; });
+}
+
 function matrixView() {
   const l = cfg.sameLayouts ? 0 : editLayout;
   const g = cfg.grids[l];
@@ -545,10 +631,11 @@ function matrixView() {
           ${cfg.sameLayouts ? '' : `<div class="layout-tabs" role="tablist">${[0, 1, 2].map((x) => `<button role="tab" data-layout="${x}" aria-selected="${x === editLayout}">Layout ${LAYOUTS[x]}</button>`).join('')}</div>`}
         </div>
       </div>
-      <p class="note">Chaque case : un code du référentiel (<span class="mono">${cfg.codes.map((c) => esc(c.code)).join(', ')}</span>), éventuellement suivi de <span class="mono">!</span> (peut punir) ou <span class="mono">?</span> (peut se faire punir), ou des BP attendus pour notre joueur (ligne) contre le leur (colonne). En BP, ajoutez l'incertitude avec ± : <span class="mono">12±6</span> pour un matchup incertain, <span class="mono">12±2</span> pour un matchup bien connu.</p>
+      <p class="note">Cliquez sur une case pour la modifier avec les boutons sous la matrice, ou tapez directement. Chaque case : un code du référentiel (<span class="mono">${cfg.codes.map((c) => esc(c.code)).join(', ')}</span>), éventuellement suivi de <span class="mono">!</span> (peut punir) ou <span class="mono">?</span> (peut se faire punir), ou des BP attendus pour notre joueur (ligne) contre le leur (colonne). En BP, ajoutez l'incertitude avec ± : <span class="mono">12±6</span> pour un matchup incertain, <span class="mono">12±2</span> pour un matchup bien connu.</p>
       <datalist id="codes-list">${cfg.codes.map((c) => `<option value="${esc(c.code)}">${esc(c.label ?? '')}</option>`).join('')}<option value="SAIS-PÔ">Estimation manquante</option></datalist>
       <div class="tablewrap"><table class="editor"><thead><tr><th></th>${cfg.them.map((t, j) => `<th><input class="name" data-them="${j}" value="${esc(t)}" aria-label="Adversaire ${j + 1}"></th>`).join('')}</tr></thead>
-      <tbody>${g.map((row, i) => `<tr><th><input class="name" data-us="${i}" value="${esc(cfg.us[i])}" aria-label="Joueur ${i + 1}"></th>${row.map((v, j) => `<td style="background:${cellColor(v)}" title="${esc(cellTitle(v))}"><input data-cell="${i},${j}" list="codes-list" value="${esc(v)}" aria-label="${esc(cfg.us[i])} contre ${esc(cfg.them[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <tbody>${g.map((row, i) => `<tr><th><input class="name" data-us="${i}" value="${esc(cfg.us[i])}" aria-label="Joueur ${i + 1}"></th>${row.map((v, j) => `<td class="${selCell && selCell.i === i && selCell.j === j ? 'sel' : ''}" style="background:${cellColor(v)}" title="${esc(cellTitle(v))}"><input data-cell="${i},${j}" list="codes-list" value="${esc(v)}" aria-label="${esc(cfg.us[i])} contre ${esc(cfg.them[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <div id="cell-editor" class="cell-editor">${cellEditor()}</div>
     </section>
 
     <section class="panel">
@@ -564,7 +651,7 @@ function matrixView() {
         <label class="field"><span>BP si on punit</span><input id="sw-high" type="number" min="0" max="20" step="0.5" value="${cfg.swing.high}" style="width:80px"></label>
         <label class="field"><span>BP si on se fait punir</span><input id="sw-low" type="number" min="0" max="20" step="0.5" value="${cfg.swing.low}" style="width:80px"></label>
       </div>
-      <p class="note">Ajoutez <span class="mono">!</span> après un code quand le résultat est stable mais que le joueur peut punir une erreur adverse : <span class="mono">p_WIN!</span> = « p_WIN stable, et ${cfg.swing.chance} % de chances d'aller chercher ≈ ${cfg.swing.high} BP ». Ajoutez <span class="mono">?</span> pour le risque inverse : <span class="mono">WIN?</span> = « WIN, mais ${cfg.swing.chance} % de risque de se faire punir (≈ ${cfg.swing.low} BP) ». Précisez la chance si besoin : <span class="mono">p_WIN!40</span>. Pour un matchup plus ou moins prévisible que son code : <span class="mono">p_WIN±5</span>. Survolez une case pour voir sa valeur.</p>
+      <p class="note">Ajoutez <span class="mono">!</span> après un code quand le résultat est stable mais que le joueur peut punir une erreur adverse : <span class="mono">p_WIN!</span> = « p_WIN stable, et ${cfg.swing.chance} % de chances d'aller chercher ≈ ${cfg.swing.high} BP ». Ajoutez <span class="mono">?</span> pour le risque inverse : <span class="mono">WIN?</span> = « WIN, mais ${cfg.swing.chance} % de risque de se faire punir (≈ ${cfg.swing.low} BP) ». Précisez la chance et le score si besoin : <span class="mono">p_WIN!40</span> (40 % de chances), <span class="mono">p_WIN!40_20</span> (40 % de chances de mettre un 20-0), <span class="mono">p_LOSE?50_3</span> (50 % de risque de ne marquer que 3 BP). Pour un matchup plus ou moins prévisible que son code : <span class="mono">p_WIN±5</span>. Survolez une case pour voir sa valeur.</p>
       <div class="row"><button class="btn small" id="codes-reset">Revenir aux valeurs par défaut</button></div>
     </section>
 
@@ -600,7 +687,7 @@ function changed(resetLive = false) {
 }
 
 function bindMatrix() {
-  $('#p-n').addEventListener('change', (e) => { resize(cfg, Number(e.target.value)); changed(true); render(); });
+  $('#p-n').addEventListener('change', (e) => { resize(cfg, Number(e.target.value)); selCell = null; changed(true); render(); });
   $('#p-round').addEventListener('change', (e) => { cfg.round = Math.max(1, Number(e.target.value) || 1); changed(true); render(); });
   $('#p-margin').addEventListener('input', (e) => {
     cfg.objective.marginWeight = Number(e.target.value); changed();
@@ -620,14 +707,24 @@ function bindMatrix() {
   $$('.layout-tabs button').forEach((b) => b.addEventListener('click', () => { editLayout = Number(b.dataset.layout); render(); }));
   $$('input[data-us]').forEach((inp) => inp.addEventListener('change', () => { cfg.us[Number(inp.dataset.us)] = inp.value; changed(); }));
   $$('input[data-them]').forEach((inp) => inp.addEventListener('change', () => { cfg.them[Number(inp.dataset.them)] = inp.value; changed(); }));
-  $$('input[data-cell]').forEach((inp) => inp.addEventListener('input', () => {
+  $$('input[data-cell]').forEach((inp) => {
     const [i, j] = inp.dataset.cell.split(',').map(Number);
-    const l = cfg.sameLayouts ? 0 : editLayout;
-    cfg.grids[l][i][j] = inp.value.trim();
-    inp.parentElement.style.background = cellColor(inp.value);
-    inp.parentElement.title = cellTitle(inp.value);
-    changed();
-  }));
+    inp.addEventListener('focus', () => {
+      selCell = { i, j };
+      $$('table.editor td.sel').forEach((td) => td.classList.remove('sel'));
+      inp.parentElement.classList.add('sel');
+      refreshCellEditor();
+    });
+    inp.addEventListener('input', () => {
+      const l = cfg.sameLayouts ? 0 : editLayout;
+      cfg.grids[l][i][j] = inp.value.trim();
+      inp.parentElement.style.background = cellColor(inp.value);
+      inp.parentElement.title = cellTitle(inp.value);
+      changed();
+      if (selCell && selCell.i === i && selCell.j === j) refreshCellEditor();
+    });
+  });
+  bindCellEditor();
 
   $$('input[data-code-mean]').forEach((inp) => inp.addEventListener('change', () => {
     cfg.codes[Number(inp.dataset.codeMean)].mean = Math.max(0, Math.min(20, Number(inp.value) || 0)); changed(); render();

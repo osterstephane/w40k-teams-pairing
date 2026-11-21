@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#11151b"/>
+  <path d="M136 168 L256 112 L376 168" fill="none" stroke="#d8a546" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M136 344 L256 400 L376 344" fill="none" stroke="#d8a546" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="256" y="306" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="150" fill="#e4e8ee">40K</text>
+</svg>

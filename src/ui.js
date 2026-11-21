@@ -942,7 +942,37 @@ function methodView() {
       <li>Pour accélérer le calcul, les BP cumulés sont arrondis à 0,5 BP (1 BP en mode rapide) quand l'outil réutilise un sous-arbre déjà calculé.</li>
       <li>La matrice est la seule source de vérité : la qualité des recommandations dépend de la qualité des estimations.</li>
     </ul>
+
+    <h2>Utiliser l'outil sans connexion</h2>
+    <ul>
+      <li><strong>Sur téléphone</strong> : ouvrez une fois la version en ligne (${esc(HOSTED_URL)}) avec une connexion, puis ajoutez-la à l'écran d'accueil. Sur iPhone (Safari) : bouton Partager, puis « Sur l'écran d'accueil ». Sur Android (Chrome) : menu ⋮, puis « Installer l'application » ou « Ajouter à l'écran d'accueil ». L'outil s'ouvre ensuite comme une application, même sans réseau.</li>
+      <li><strong>Sur ordinateur</strong> : <a href="${esc(standaloneHref())}" ${isHosted() ? 'download="table-de-pairing-40k.html"' : 'target="_blank" rel="noopener"'}>téléchargez le fichier unique</a>${isHosted() ? '' : ' (enregistrez la page qui s\'ouvre)'}, puis ouvrez-le d'un double-clic. Il contient tout l'outil et fonctionne sans connexion.</li>
+      <li>Hors ligne, tout fonctionne : matrice, import, export, éditeur de cases, recommandations, pairing complet. Votre matrice reste enregistrée dans le navigateur de l'appareil. Seule la matrice d'équipe partagée en direct demande une connexion et la version Claude de l'outil.</li>
+    </ul>
   </article>`;
+}
+
+// ------------------------------------------------------------ offline use
+
+const HOSTED_URL = 'https://osterstephane.github.io/w40k-teams-pairing/';
+
+// True on the hosted version (GitHub Pages or a local web server), where the
+// page is served with its separate files; false for the single-file build
+// and the Claude artifact.
+function isHosted() {
+  if (window.__CORE_SOURCE__) return false;
+  const h = location.hostname;
+  return (location.protocol === 'https:' && h.endsWith('.github.io')) || h === 'localhost' || h === '127.0.0.1';
+}
+
+function standaloneHref() {
+  return isHosted() ? 'dist/index.html' : `${HOSTED_URL}dist/index.html`;
+}
+
+// Caches the tool so the hosted version opens without a connection.
+function registerOffline() {
+  if (!isHosted() || !('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js').catch(() => { /* offline mode unavailable */ });
 }
 
 // ---------------------------------------------------------------- startup
@@ -950,3 +980,4 @@ function methodView() {
 $$('nav.tabs button').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; render(); }));
 render();
 initShared();
+registerOffline();

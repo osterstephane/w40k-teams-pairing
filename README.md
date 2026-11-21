@@ -11,9 +11,15 @@ Aide à la décision pour le **pairing des matchs par équipes de Warhammer 40,0
 
 ## Utilisation
 
-En ligne (une fois GitHub Pages activé) : https://osterstephane.github.io/w40k-teams-pairing/
+Trois façons de l'utiliser, avec les mêmes fonctionnalités :
 
-Sans connexion : ouvrez `dist/index.html` dans un navigateur. Le fichier est autonome et fonctionne hors ligne. Les données restent dans votre navigateur.
+| Version | Où | Sans connexion |
+|---|---|---|
+| En ligne | https://osterstephane.github.io/w40k-teams-pairing/ | Oui, après une première ouverture : ajoutez-la à l'écran d'accueil du téléphone (iPhone : Partager → « Sur l'écran d'accueil » ; Android : menu ⋮ → « Installer l'application »). |
+| Fichier unique | `dist/index.html` (lien de téléchargement dans l'onglet Méthode) | Oui : un seul fichier HTML, polices comprises, à ouvrir d'un double-clic. Aucune requête réseau. |
+| Version Claude | page Claude partagée par le capitaine | Non : elle ajoute la matrice d'équipe partagée en direct, qui demande une connexion. |
+
+Les données (matrice, pairing en cours) restent dans le navigateur de l'appareil.
 
 1. **Matrice** : taille d'équipe, ronde, objectif, puis saisissez ou collez la matrice depuis Google Sheets (copier/coller des cellules, noms compris). Une fois importée, la matrice reste modifiable : cliquez sur une case pour choisir le code et le scénario (stable, peut punir, peut se faire punir, chance, score) avec des boutons, sur un layout ou les trois.
 2. **Pairing** : suivez les étapes. À chaque étape, saisissez les choix révélés. L'outil recalcule à partir de la situation réelle.
@@ -74,6 +80,8 @@ Détails du modèle et simplifications : [docs/MODEL.md](docs/MODEL.md).
 
 Settings → Pages → *Build and deployment* : Source « Deploy from a branch », branche `main`, dossier `/ (root)`. Le site sert `index.html` et les modules de `src/` directement, sans étape de build.
 
+Hors ligne, la version en ligne s'appuie sur un service worker (`sw.js`) : réseau d'abord (une nouvelle version est prise dès que le réseau répond), cache sinon. `test/pwa.test.js` vérifie que `sw.js` met en cache tous les fichiers de la page.
+
 ## Développement
 
 ```sh
@@ -95,3 +103,4 @@ Pour développer sur les sources (`index.html` + `src/*.js`), servez le dossier 
 | `src/ui.js`, `index.html` | Interface |
 | `src/worker.js` | Calcul en arrière-plan (Web Worker) |
 | `src/shared.js` | Synchronisation de la matrice d'équipe (version Claude) |
+| `sw.js`, `manifest.webmanifest`, `assets/` | Usage hors ligne et installation sur téléphone ; polices (licence OFL) et icônes |
